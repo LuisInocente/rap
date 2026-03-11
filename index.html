@@ -126,7 +126,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); ou
 }
 .hdr-btn:hover { background: var(--light); color: var(--text); }
 .hdr-btn.danger { color: var(--danger); }
-.hdr-save-status {
+.hdr-save-status { display: none; }
   font-size: 13px;
   color: var(--muted);
   padding: 0 14px;
@@ -1003,13 +1003,13 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); ou
 .btn-del-row:hover { border-color: var(--danger); color: var(--danger); }
 
 /* ── Teacher detail ── */
-.detail-wrap { padding: 36px 32px; max-width: 1000px; margin: 0 auto; }
+.detail-wrap { padding: 36px 32px; max-width: 1200px; margin: 0 auto; }
 .detail-topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 2px solid var(--text); flex-wrap: wrap; gap: 12px; }
 .detail-name { font-size: 22px; font-weight: 700; }
 .detail-meta { font-size: 13px; color: var(--muted); margin-top: 4px; }
-.detail-body { display: flex; gap: 48px; align-items: flex-start; flex-wrap: wrap; }
-.detail-left { flex: 1; min-width: 260px; }
-.detail-right { flex: 2; min-width: 320px; }
+.detail-body { display: flex; flex-direction: column; gap: 32px; }
+.detail-left { width: 100%; }
+.detail-right { width: 100%; }
 .detail-section { margin-bottom: 32px; }
 .detail-section-title {
   font-size: 11px;
@@ -1241,7 +1241,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); ou
                   <button class="btn-attach" id="w1addbtn" onclick="addWord()">Toevoegen</button>
                 </div>
               </div>
-              <div class="hint-ok" id="hint1">Minimaal 3 woorden — je kunt doorgaan naar stap 2</div>
+              <div class="hint-ok" id="hint1" style="display:none"></div>
             </div>
           </div>
 
@@ -1265,7 +1265,6 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); ou
         <div style="max-width:860px;padding:28px;margin:0 auto">
           <div id="rhyme-list"></div>
           <div style="display:none"><div id="spin2-wrap"><canvas id="spin2-cv"></canvas></div></div>
-          <div class="hint-ok" id="hint2" style="margin-top:14px">Je kunt doorgaan naar stap 3</div>
         </div>
       </div>
 
@@ -1295,8 +1294,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); ou
           <div class="rap-lines" id="rap-lines"></div>
           <div class="rap-actions">
             <button class="btn-save" onclick="saveRap()">Rap opslaan</button>
-            <button class="btn-view-rap" id="btn-view-my-rap" onclick="showMyRap()">Bekijk mijn rap</button>
-            <button class="btn-view-rap" onclick="downloadRap()" title="Sla op als bestand (USB)">Downloaden</button>
+            <button class="btn-view-rap" id="btn-view-my-rap" onclick="showMyRap()" style="display:none">Bekijk mijn rap</button>
           </div>
         </div>
       </div>
@@ -1359,14 +1357,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); ou
           <div class="page-name">Projecten</div>
           <div class="page-desc" id="gallery-sub">Overzicht van alle raps</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <button class="btn-secondary" onclick="loadGallery()">Vernieuwen</button>
-          <button class="btn-secondary" onclick="exportAllRaps()">Exporteer alle raps</button>
-          <label class="btn-secondary" style="cursor:pointer">
-            Importeer van USB
-            <input type="file" accept=".json" style="display:none" onchange="importRap(this)">
-          </label>
-        </div>
+        <button class="btn-secondary" onclick="loadGallery()">Vernieuwen</button>
       </div>
       <div class="gallery-filters" id="gallery-filters">
         <div class="filter-group">
@@ -1400,10 +1391,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); ou
         </div>
       </div>
       <div id="detail-content"></div>
-      <div style="display:flex;gap:10px;margin-top:28px">
-        <button class="btn-secondary" id="btn-detail-download">Downloaden</button>
-        <button class="btn-delete-entry" id="btn-detail-delete" style="margin-top:0">Rap verwijderen</button>
-      </div>
+      <button class="btn-delete-entry" id="btn-detail-delete">Rap verwijderen</button>
     </div>
   </div>
 
@@ -1415,31 +1403,8 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); ou
 
 <script>
 // ══ CONFIG ══
+const API      = 'https://muziekmeesterluis.nl/projects/api/index.php';
 const APP      = 'raplab';
-const LS_PREFIX = 'raplab__';
-
-// ── localStorage helpers ──
-function lsSave(key, data) {
-  try { localStorage.setItem(LS_PREFIX + key, JSON.stringify(data)); return true; }
-  catch(e) { return false; }
-}
-function lsGet(key) {
-  try { const v = localStorage.getItem(LS_PREFIX + key); return v ? JSON.parse(v) : null; }
-  catch(e) { return null; }
-}
-function lsDelete(key) {
-  try { localStorage.removeItem(LS_PREFIX + key); return true; } catch(e) { return false; }
-}
-function lsAll() {
-  const out = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k && k.startsWith(LS_PREFIX)) {
-      try { out.push(JSON.parse(localStorage.getItem(k))); } catch(e) {}
-    }
-  }
-  return out;
-}
 const TEACHER_PW = 'meesterluis';
 
 // ══ STATE ══
@@ -1509,7 +1474,7 @@ function stepUnlocked(n) {
   if (n === 1) return true;
   if (n === 2) return ok1();
   if (n === 3) return ok1();
-  if (n === 4) return S.rapLines && S.rapLines.some(l => l.text || l.endWord);
+  if (n === 4) return ok1();
   return false;
 }
 function buildSteps() {
@@ -1552,11 +1517,17 @@ async function startStudent() {
   S.school      = school || 'onbekend';
   S.klas        = klas || '';
   S.saveKey     = makeKey(S.school, S.klas, name);
-  const existing = lsGet(S.saveKey);
-  if (existing && existing.central) {
-    const notice = document.getElementById('load-notice');
-    notice.style.display = 'block'; notice._data = existing; return;
-  }
+  try {
+    const res = await fetch(`${API}?action=list&app=${APP}`);
+    const list = await res.json();
+    if (Array.isArray(list)) {
+      const existing = list.find(r => r.id === S.saveKey);
+      if (existing && existing.central) {
+        const notice = document.getElementById('load-notice');
+        notice.style.display = 'block'; notice._data = existing; return;
+      }
+    }
+  } catch(e) {}
   startFresh();
 }
 
@@ -1587,21 +1558,24 @@ function setAutoSaveDot(state) {
   const txt = document.getElementById('autosave-txt');
   const bar = document.getElementById('autosave-status');
   if (!dot) return;
-  if (bar) bar.style.display = state ? 'flex' : 'none';
+  if (bar) bar.style.display = state === 'err' ? 'flex' : 'none';
   dot.className = 'autosave-dot ' + state;
-  if (state === 'saving') txt.textContent = 'opslaan...';
-  else if (state === 'saved') txt.textContent = 'opgeslagen';
-  else if (state === 'err') txt.textContent = 'mislukt';
-  else txt.textContent = '';
+  txt.textContent = state === 'err' ? 'opslaan mislukt' : '';
 }
 async function autoSave() {
   if (!S.studentName || !S.saveKey) return;
   if (!S.central && S.words.length === 0) return;
   setAutoSaveDot('saving');
   const savedAt = new Date().toISOString();
-  const ok = lsSave(S.saveKey, buildPayload(savedAt));
-  if (ok) { S.savedAt = savedAt; setAutoSaveDot('saved'); setTimeout(()=>setAutoSaveDot(''), 3000); }
-  else setAutoSaveDot('err');
+  try {
+    const res = await fetch(`${API}?action=save&app=${APP}`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(buildPayload(savedAt)),
+    });
+    const data = await res.json();
+    if (data.ok) { S.savedAt = savedAt; setAutoSaveDot('saved'); setTimeout(()=>setAutoSaveDot(''), 3000); }
+    else setAutoSaveDot('err');
+  } catch(e) { setAutoSaveDot('err'); }
 }
 function buildPayload(savedAt) {
   return {
@@ -1679,7 +1653,6 @@ function removeWord(i) {
 
 function renderWordList() {
   document.getElementById('w1count').textContent = S.words.length;
-  document.getElementById('hint1').style.display = S.words.length >= 3 ? 'block' : 'none';
   const cont = document.getElementById('word-entries'); cont.innerHTML = '';
   S.words.forEach((item, i) => {
     const row = document.createElement('div'); row.className = 'word-entry';
@@ -1689,7 +1662,7 @@ function renderWordList() {
     row.appendChild(del); cont.appendChild(row);
   });
 }
-function upd1() { const el = document.getElementById('btn-to2'); if (el) el.classList.toggle('on', ok1()); }
+function upd1() { const el = document.getElementById('btn-to2'); if (el) el.classList.toggle('on', ok1()); renderHeader(); }
 
 // ══ STAP 2 ══
 function syncRhymes() {
@@ -1771,9 +1744,7 @@ async function fetchRhymes(word) {
   } catch(e) { return []; }
 }
 function upd2() {
-  const ok = ok1();
-  const el = document.getElementById('btn-to3'); if (el) el.classList.toggle('on', ok);
-  const h = document.getElementById('hint2'); if (h) h.style.display = ok ? 'block' : 'none';
+  const el = document.getElementById('btn-to3'); if (el) el.classList.toggle('on', ok1());
 }
 
 // ══ CANVAS HELPERS ══
@@ -1972,24 +1943,17 @@ function copyRap() {
 // ══ SAVE / LOAD ══
 async function saveRap() {
   const savedAt = new Date().toISOString();
-  const payload = buildPayload(savedAt);
-  const ok = lsSave(S.saveKey, payload);
-  if (ok) {
-    S.savedAt = savedAt; renderHeader();
-    document.getElementById('btn-view-my-rap').style.display = 'inline-block';
-    showToast('Rap opgeslagen');
-  } else showToast('Opslaan mislukt');
-}
-
-function downloadRap() {
-  const savedAt = new Date().toISOString();
-  const payload = buildPayload(savedAt);
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `rap_${S.studentName.replace(/\s+/g,'_')}_${S.klas||'klas'}.json`;
-  a.click(); URL.revokeObjectURL(a.href);
-  showToast('Rap gedownload');
+  try {
+    const res = await fetch(`${API}?action=save&app=${APP}`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(buildPayload(savedAt)),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      S.savedAt = savedAt; renderHeader();
+      document.getElementById('btn-view-my-rap').style.display = 'inline-block';
+      showToast('Rap opgeslagen');
+    } else showToast('Opslaan mislukt');
+  } catch(e) { showToast('Server niet bereikbaar'); }
 }
 function loadStateFromData(data) {
   S.central  = data.central  || '';
@@ -2051,26 +2015,30 @@ function copyMyRap() {
 async function loadGallery() {
   document.getElementById('gallery-body').innerHTML = '<div class="gallery-loading">Laden...</div>';
   document.getElementById('gallery-filters').style.display = 'none';
-  const list = lsAll();
-  const enriched = list.map(s => {
-    const lines = s.rapLines || [];
-    return {
-      studentName: s.studentName || '?', rapTitle: s.rapTitle || '',
-      school: s.school || '?', klas: s.klas || '?',
-      savedAt: s.savedAt || s.date || '', central: s.central || '',
-      linesDone: lines.filter(l => l.endWord).length, _id: s.id, _data: s,
-    };
-  });
-  enriched.sort((a,b) => a.school.localeCompare(b.school) || a.klas.localeCompare(b.klas) || b.savedAt.localeCompare(a.savedAt));
-  S.teacherAllRaps = enriched;
-  const schools = [...new Set(enriched.map(r=>r.school))].sort();
-  const klassen = [...new Set(enriched.map(r=>r.klas))].sort();
-  const fSchool = document.getElementById('filter-school');
-  const fKlas   = document.getElementById('filter-klas');
-  fSchool.innerHTML = '<option value="">Alle scholen</option>' + schools.map(s=>`<option>${s}</option>`).join('');
-  fKlas.innerHTML   = '<option value="">Alle klassen</option>' + klassen.map(k=>`<option>${k}</option>`).join('');
-  document.getElementById('gallery-filters').style.display = enriched.length ? 'flex' : 'none';
-  applyFilters();
+  try {
+    const res = await fetch(`${API}?action=list&app=${APP}`);
+    let list; try { list = await res.json(); } catch(e) { document.getElementById('gallery-body').innerHTML='<div class="gallery-empty">Ongeldige respons van server.</div>'; return; }
+    if (!Array.isArray(list)) { document.getElementById('gallery-body').innerHTML='<div class="gallery-empty">Onverwacht formaat.</div>'; return; }
+    const enriched = list.map(s => {
+      const lines = s.rapLines || [];
+      return {
+        studentName: s.studentName || '?', rapTitle: s.rapTitle || '',
+        school: s.school || '?', klas: s.klas || '?',
+        savedAt: s.savedAt || s.date || '', central: s.central || '',
+        linesDone: lines.filter(l => l.endWord).length, _id: s.id, _data: s,
+      };
+    });
+    enriched.sort((a,b) => a.school.localeCompare(b.school) || a.klas.localeCompare(b.klas) || b.savedAt.localeCompare(a.savedAt));
+    S.teacherAllRaps = enriched;
+    const schools = [...new Set(enriched.map(r=>r.school))].sort();
+    const klassen = [...new Set(enriched.map(r=>r.klas))].sort();
+    const fSchool = document.getElementById('filter-school');
+    const fKlas   = document.getElementById('filter-klas');
+    fSchool.innerHTML = '<option value="">Alle scholen</option>' + schools.map(s=>`<option>${s}</option>`).join('');
+    fKlas.innerHTML   = '<option value="">Alle klassen</option>' + klassen.map(k=>`<option>${k}</option>`).join('');
+    document.getElementById('gallery-filters').style.display = enriched.length ? 'flex' : 'none';
+    applyFilters();
+  } catch(e) { document.getElementById('gallery-body').innerHTML=`<div class="gallery-empty">Server niet bereikbaar: ${e.message}</div>`; }
 }
 function applyFilters() {
   const school = document.getElementById('filter-school').value;
@@ -2126,12 +2094,12 @@ function renderDetail(data, fullKey) {
     const sec = document.createElement('div'); sec.className = 'detail-section';
     const lbl = document.createElement('div'); lbl.className = 'detail-section-title'; lbl.textContent = 'Woordspin';
     const tbl = document.createElement('table'); tbl.className = 'detail-word-table';
-    tbl.innerHTML = '<thead><tr><th>Woord</th><th>Associatie</th><th>Rijmt op woord</th><th>Rijmt op associatie</th></tr></thead>';
+    tbl.innerHTML = '<thead><tr><th>Hoofdwoord</th><th>Rijmt op hoofdwoord</th><th>Associatie</th><th>Rijmt op associatie</th></tr></thead>';
     const tbody = document.createElement('tbody');
     data.words.forEach((item, i) => {
       const wr = data.rhymes?.[i] || {};
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${item.word}</td><td>${item.assoc}</td><td>${wr.wordRhyme||'—'}</td><td>${wr.assocRhyme||'—'}</td>`;
+      tr.innerHTML = `<td>${item.word}</td><td>${wr.wordRhyme||'—'}</td><td>${item.assoc}</td><td>${wr.assocRhyme||'—'}</td>`;
       tbody.appendChild(tr);
     });
     tbl.appendChild(tbody); sec.appendChild(lbl); sec.appendChild(tbl); left.appendChild(sec);
@@ -2225,66 +2193,26 @@ function renderDetail(data, fullKey) {
 
   body.appendChild(left); body.appendChild(right); cont.appendChild(body);
   document.getElementById('btn-detail-delete').onclick = () => deleteRapFromDetail(fullKey);
-  document.getElementById('btn-detail-download').onclick = () => exportDetailRap(data);
 }
 async function deleteRap(id, e) {
   if (e) e.stopPropagation();
   if (!confirm('Rap verwijderen?')) return;
-  lsDelete(id);
-  showToast('Verwijderd'); loadGallery();
+  try {
+    const res = await fetch(`${API}?action=delete&app=${APP}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id}) });
+    const data = await res.json();
+    if (data.ok) { showToast('Verwijderd'); loadGallery(); } else showToast('Kon niet verwijderen');
+  } catch(e) { showToast('Server niet bereikbaar'); }
 }
 async function deleteRapFromDetail(id) {
   if (!confirm('Rap verwijderen?')) return;
-  lsDelete(id);
-  showToast('Verwijderd'); showView('v-teacher-gallery'); loadGallery();
+  try {
+    const res = await fetch(`${API}?action=delete&app=${APP}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id}) });
+    const data = await res.json();
+    if (data.ok) { showToast('Verwijderd'); showView('v-teacher-gallery'); loadGallery(); } else showToast('Kon niet verwijderen');
+  } catch(e) { showToast('Server niet bereikbaar'); }
 }
 
-// ── Export alle raps als zip-achtig JSON bestand ──
-function exportAllRaps() {
-  const all = lsAll();
-  if (!all.length) { showToast('Geen raps om te exporteren'); return; }
-  const blob = new Blob([JSON.stringify(all, null, 2)], {type: 'application/json'});
-  const a = document.createElement('a');
-  const datum = new Date().toISOString().slice(0,10);
-  a.href = URL.createObjectURL(blob);
-  a.download = `raplab_export_${datum}.json`;
-  a.click(); URL.revokeObjectURL(a.href);
-  showToast('Geëxporteerd');
-}
-
-// ── Importeer rap(pen) van USB/bestand ──
-function importRap(input) {
-  const file = input.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      let data = JSON.parse(e.target.result);
-      if (!Array.isArray(data)) data = [data];
-      let count = 0;
-      data.forEach(rap => {
-        if (rap && (rap.id || rap.saveKey) && rap.studentName) {
-          const key = rap.id || rap.saveKey;
-          lsSave(key, {...rap, id: key});
-          count++;
-        }
-      });
-      showToast(`${count} rap${count===1?'':'pen'} geïmporteerd`);
-      loadGallery();
-    } catch(e) { showToast('Ongeldig bestand'); }
-    input.value = '';
-  };
-  reader.readAsText(file);
-}
-
-// ── Export vanuit detail ──
-function exportDetailRap(data) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `rap_${(data.studentName||'onbekend').replace(/\s+/g,'_')}.json`;
-  a.click(); URL.revokeObjectURL(a.href);
-  showToast('Rap gedownload');
-}
+// ══ TOAST ══
 let toastTimer;
 function showToast(msg) {
   const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show');
