@@ -1,1411 +1,2450 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>RapLab</title>
-<style>
-/* ── Reset & basis ── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #f7f7f7;
-  --white: #ffffff;
-  --border: #d0d0d0;
-  --border-dark: #999;
-  --text: #1a1a1a;
-  --muted: #666;
-  --light: #ebebeb;
-  --accent: #1a1a1a;
-  --accent-hover: #333;
-  --danger: #c00;
-  --success: #2a7a2a;
-  --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'Courier New', Courier, monospace;
-}
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 15px;
-  line-height: 1.5;
-  min-height: 100vh;
-}
-input, textarea, select, button {
-  font-family: var(--font);
-  font-size: 15px;
-}
-button { cursor: pointer; }
-::placeholder { color: var(--muted); }
-input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RapLab</title>
+  <style>
+    /* ── Reset & basis ── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-/* ── App shell ── */
-#app { display: flex; flex-direction: column; min-height: 100vh; }
+    :root {
+      --bg: #f7f7f7;
+      --white: #ffffff;
+      --border: #d0d0d0;
+      --border-dark: #999;
+      --text: #1a1a1a;
+      --muted: #666;
+      --light: #ebebeb;
+      --accent: #1a1a1a;
+      --accent-hover: #333;
+      --danger: #c00;
+      --success: #2a7a2a;
+      --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --mono: 'Courier New', Courier, monospace;
+    }
 
-/* ── Header ── */
-.header {
-  background: var(--white);
-  border-bottom: 2px solid var(--text);
-  height: 52px;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  padding: 0 24px;
-  flex-shrink: 0;
-}
-.logo {
-  font-family: var(--mono);
-  font-weight: bold;
-  font-size: 18px;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-}
-.hdr-mid { display: flex; justify-content: center; }
-.hdr-right { display: flex; align-items: center; gap: 0; justify-content: flex-end; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
 
-/* Steps in header */
-.steps { display: flex; align-items: center; gap: 0; }
-.step-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  width: 160px;
-  height: 52px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-  border: 1px solid var(--border);
-  border-right: none;
-  background: var(--white);
-  cursor: default;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.step-item:last-child { border-right: 1px solid var(--border); }
-.step-item.active {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-}
-.step-item.done { color: var(--text); cursor: pointer; }
-.step-item.done:hover { background: var(--light); }
-.step-item.locked { color: var(--border); cursor: default; pointer-events: none; }
-.step-item.locked .step-num { border-color: var(--border); color: var(--border); }
-.step-item:not(.active):not(.locked):hover { background: var(--light); cursor: pointer; }
-.step-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
-  font-weight: 700;
-  border: 1px solid currentColor;
-}
-.step-item.active .step-num { background: #fff; color: var(--accent); border-color: #fff; }
+    input,
+    textarea,
+    select,
+    button {
+      font-family: var(--font);
+      font-size: 15px;
+    }
 
-/* Header name / buttons */
-.hdr-name {
-  font-size: 13px;
-  color: var(--muted);
-  padding: 0 16px;
-  border-left: 1px solid var(--border);
-  height: 52px;
-  display: flex;
-  align-items: center;
-}
-.hdr-btn {
-  height: 52px;
-  padding: 0 16px;
-  background: transparent;
-  border: none;
-  border-left: 1px solid var(--border);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-}
-.hdr-btn:hover { background: var(--light); color: var(--text); }
-.hdr-btn.danger { color: var(--danger); }
-.hdr-save-status { display: none; }
-  font-size: 13px;
-  color: var(--muted);
-  padding: 0 14px;
-  border-left: 1px solid var(--border);
-  height: 52px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  display: none;
-}
-.autosave-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--border);
-  flex-shrink: 0;
-  transition: background .3s;
-}
-.autosave-dot.saving { background: #e09900; }
-.autosave-dot.saved  { background: var(--success); }
-.autosave-dot.err    { background: var(--danger); }
-.hdr-teacher-badge {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  padding: 3px 10px;
-  border: 1px solid var(--border);
-  margin-right: 8px;
-  text-transform: uppercase;
-}
+    button {
+      cursor: pointer;
+    }
 
-/* ── Views ── */
-.view { display: none; flex: 1; flex-direction: column; }
-.view.active { display: flex; }
-.view-center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-}
+    ::placeholder {
+      color: var(--muted);
+    }
 
-/* ── Welcome screen ── */
-.welcome-box { width: 100%; max-width: 420px; }
-.welcome-title {
-  font-family: var(--mono);
-  font-size: 36px;
-  font-weight: bold;
-  letter-spacing: 0.12em;
-  color: var(--text);
-  margin-bottom: 6px;
-}
-.welcome-subtitle {
-  font-size: 14px;
-  color: var(--muted);
-  margin-bottom: 24px;
-}
-.form-divider { height: 1px; background: var(--border); margin: 20px 0; }
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 16px;
-  margin-bottom: 16px;
-}
-.form-field { display: flex; flex-direction: column; gap: 4px; }
-.form-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-.form-input {
-  background: var(--white);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 9px 12px;
-  font-size: 14px;
-  width: 100%;
-}
-.form-input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
-.err-msg { font-size: 13px; color: var(--danger); margin: 8px 0; display: none; }
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
 
-.btn-primary {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 11px 20px;
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-}
-.btn-primary:hover { background: var(--accent-hover); }
-.btn-primary:disabled { background: var(--border); color: var(--muted); cursor: default; }
-.btn-primary.full { width: 100%; }
+    /* ── App shell ── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
 
-.btn-secondary {
-  background: var(--white);
-  color: var(--text);
-  border: 1px solid var(--border);
-  padding: 9px 18px;
-  font-size: 14px;
-  cursor: pointer;
-}
-.btn-secondary:hover { background: var(--light); border-color: var(--border-dark); }
+    /* ── Header ── */
+    .header {
+      background: var(--white);
+      border-bottom: 2px solid var(--text);
+      height: 52px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 24px;
+      flex-shrink: 0;
+    }
 
-.btn-link {
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 13px;
-  padding: 0;
-  cursor: pointer;
-  text-decoration: underline;
-}
-.btn-link:hover { color: var(--text); }
+    .logo {
+      font-family: var(--mono);
+      font-weight: bold;
+      font-size: 18px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+    }
 
-.welcome-teacher-row {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-}
+    .hdr-mid {
+      display: flex;
+      justify-content: center;
+    }
 
-.load-notice {
-  background: var(--white);
-  border: 1px solid var(--border);
-  padding: 14px 16px;
-  margin-bottom: 14px;
-  font-size: 14px;
-  display: none;
-}
-.load-notice p { margin-bottom: 10px; }
-.notice-btns { display: flex; gap: 8px; }
+    .hdr-right {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      justify-content: flex-end;
+    }
 
-/* ── Main content ── */
-.main { flex: 1; overflow: auto; }
-.page { display: none; padding: 32px 28px; max-width: 1080px; margin: 0 auto; width: 100%; }
-.page.active { display: block; }
-#page1 { padding: 0; max-width: none; margin: 0; overflow-x: auto; }
+    /* Steps in header */
+    .steps {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
 
-/* Page headings */
-.page-heading {
-  margin-bottom: 28px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 16px;
-}
-.page-title {
-  font-family: var(--mono);
-  font-size: 13px;
-  font-weight: bold;
-  letter-spacing: 0.12em;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.page-name {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text);
-}
-.page-desc {
-  font-size: 14px;
-  color: var(--muted);
-  margin-top: 4px;
-  max-width: 560px;
-}
+    .step-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      width: 160px;
+      height: 52px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-right: none;
+      background: var(--white);
+      cursor: default;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
 
-/* Field label */
-.field-label {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
+    .step-item:last-child {
+      border-right: 1px solid var(--border);
+    }
 
-/* ── Input styles ── */
-.input-group { display: flex; }
-.input-group input {
-  flex: 1;
-  border: 1px solid var(--border);
-  border-right: none;
-  background: var(--white);
-  color: var(--text);
-  padding: 9px 12px;
-  font-size: 14px;
-}
-.input-group input:focus { outline: 2px solid var(--accent); outline-offset: 0; z-index: 1; }
-.btn-attach {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 9px 16px;
-  font-weight: 700;
-  font-size: 14px;
-  white-space: nowrap;
-}
-.btn-attach:hover { background: var(--accent-hover); }
-.btn-attach.off { background: var(--light); color: var(--muted); cursor: default; }
+    .step-item.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
 
-/* ── Step 1 layout ── */
-.s1-layout {
-  display: flex;
-  gap: 0;
-  align-items: flex-start;
-  flex-wrap: nowrap;
-  justify-content: center;
-}
-.s1-inputs-col {
-  flex: 0 0 260px;
-  padding: 28px 24px 28px 28px;
-}
-.s1-spin-col {
-  flex: 0 0 auto;
-}
-.s1-list-col {
-  flex: 0 0 280px;
-  padding: 28px 28px 28px 24px;
-}
+    .step-item.done {
+      color: var(--text);
+      cursor: pointer;
+    }
 
-/* Confirmed central word */
-.central-confirmed {
-  display: none;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-.central-tag {
-  background: var(--accent);
-  color: #fff;
-  padding: 7px 14px;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: var(--mono);
-}
-.btn-edit {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 6px 12px;
-  font-size: 13px;
-  cursor: pointer;
-}
-.btn-edit:hover { border-color: var(--border-dark); color: var(--text); }
+    .step-item.done:hover {
+      background: var(--light);
+    }
 
-/* Word list */
-#word-section { margin-top: 20px; }
-.word-entries { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; max-height: 280px; overflow-y: auto; }
-.word-entry {
-  display: flex;
-  align-items: center;
-  border: 1px solid var(--border);
-  background: var(--white);
-  overflow: hidden;
-}
-.we-word {
-  padding: 7px 12px;
-  font-weight: 700;
-  font-size: 13px;
-  background: var(--accent);
-  color: #fff;
-  min-width: 90px;
-  font-family: var(--mono);
-}
-.we-assoc {
-  flex: 1;
-  padding: 7px 12px;
-  font-size: 13px;
-  color: var(--muted);
-  font-style: italic;
-}
-.we-del {
-  background: none;
-  border: none;
-  border-left: 1px solid var(--border);
-  color: var(--muted);
-  padding: 7px 10px;
-  font-size: 16px;
-  cursor: pointer;
-  line-height: 1;
-}
-.we-del:hover { background: var(--light); color: var(--danger); }
+    .step-item.locked {
+      color: var(--border);
+      cursor: default;
+      pointer-events: none;
+    }
 
-.word-inputs { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
-.word-inputs input {
-  border: 1px solid var(--border);
-  background: var(--white);
-  color: var(--text);
-  padding: 8px 12px;
-  font-size: 14px;
-  width: 100%;
-}
-.word-inputs input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+    .step-item.locked .step-num {
+      border-color: var(--border);
+      color: var(--border);
+    }
 
-.hint-ok {
-  font-size: 13px;
-  color: var(--success);
-  font-weight: 600;
-  margin-top: 8px;
-  display: none;
-}
+    .step-item:not(.active):not(.locked):hover {
+      background: var(--light);
+      cursor: pointer;
+    }
 
-/* ── Top nav bar per stap ── */
-.page-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 28px;
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 52px;
-  z-index: 9;
-  gap: 10px;
-}
-.page-nav-left { display: flex; gap: 8px; align-items: center; }
-.page-nav-right { display: flex; gap: 8px; align-items: center; }
-.page-nav-title { font-size: 13px; color: var(--muted); }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid currentColor;
+    }
 
-/* Navigation row */
-.nav-row {
-  margin-top: 36px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-.nav-row.right { justify-content: flex-end; }
-.btn-nav-next {
-  background: var(--light);
-  color: var(--muted);
-  border: 1px solid var(--border);
-  padding: 10px 22px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: default;
-}
-.btn-nav-next.on {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-  cursor: pointer;
-}
-.btn-nav-next.on:hover { background: var(--accent-hover); }
-.btn-nav-back {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 10px 22px;
-  font-size: 14px;
-  cursor: pointer;
-}
-.btn-nav-back:hover { border-color: var(--border-dark); color: var(--text); }
+    .step-item.active .step-num {
+      background: #fff;
+      color: var(--accent);
+      border-color: #fff;
+    }
 
-/* Spin visualization */
-.spin-wrap { position: relative; flex-shrink: 0; }
-.spin-center {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  font-family: var(--mono);
-  font-weight: 700;
-  font-size: 16px;
-  letter-spacing: 0.06em;
-  z-index: 4;
-  background: var(--accent);
-  color: #fff;
-  width: 160px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  overflow: hidden;
-  padding: 0 8px;
-}
-.spin-center.empty {
-  background: var(--light);
-  color: var(--muted);
-  border: 1px dashed var(--border);
-}
-.spin-node {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  font-family: var(--mono);
-  font-size: 14px;
-  font-weight: 700;
-  z-index: 3;
-  background: var(--white);
-  color: var(--text);
-  border: 1px solid var(--border);
-  width: 150px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  overflow: hidden;
-  padding: 0 8px;
-  cursor: default;
-}
-.spin-node.editable:hover {
-  border-color: var(--accent);
-  cursor: pointer;
-}
-.spin-assoc-node {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  font-family: var(--mono);
-  font-size: 14px;
-  z-index: 3;
-  background: var(--bg);
-  color: var(--muted);
-  border: 1px dashed var(--border);
-  width: 150px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  overflow: hidden;
-  padding: 0 8px;
-  cursor: default;
-}
-.spin-rhyme-node {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  font-family: var(--mono);
-  font-size: 14px;
-  font-weight: 700;
-  z-index: 3;
-  background: var(--white);
-  color: var(--text);
-  border: 1px solid var(--border-dark);
-  padding: 8px 14px;
-  white-space: nowrap;
-}
-.spin-rhyme-node.assoc-rhyme {
-  font-weight: 400;
-  font-style: italic;
-  color: var(--muted);
-  border-style: dashed;
-}
+    /* Header name / buttons */
+    .hdr-name {
+      font-size: 13px;
+      color: var(--muted);
+      padding: 0 16px;
+      border-left: 1px solid var(--border);
+      height: 52px;
+      display: flex;
+      align-items: center;
+    }
 
-/* Inline edit popup */
-.spin-edit-popup {
-  position: absolute;
-  z-index: 10;
-  background: var(--white);
-  border: 2px solid var(--accent);
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 4px 16px rgba(0,0,0,.15);
-  transform: translate(-50%, -50%);
-}
-.spin-edit-popup input {
-  border: none;
-  border-bottom: 1px solid var(--border);
-  padding: 8px 12px;
-  font-size: 14px;
-  background: transparent;
-  color: var(--text);
-  min-width: 130px;
-}
-.spin-edit-popup input.single { border-bottom: none; }
-.spin-edit-popup input:focus { outline: none; background: #fafafa; }
-.spin-edit-actions { display: flex; border-top: 1px solid var(--border); }
-.spin-edit-ok {
-  flex: 1;
-  padding: 7px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.spin-edit-ok:hover { background: var(--accent-hover); }
-.spin-edit-del {
-  padding: 7px 12px;
-  background: none;
-  border: none;
-  border-left: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 14px;
-  cursor: pointer;
-}
-.spin-edit-del:hover { color: var(--danger); background: var(--light); }
+    .hdr-btn {
+      height: 52px;
+      padding: 0 16px;
+      background: transparent;
+      border: none;
+      border-left: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+    }
 
-/* ── Step 2: Rhyme cards ── */
-.rhyme-cards { display: flex; flex-direction: column; gap: 12px; }
-.rhyme-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  width: 100%;
-}
-.rc-header {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 24px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--light);
-}
-.rc-word { font-weight: 700; font-size: 14px; font-family: var(--mono); }
-.rc-assoc { font-size: 13px; color: var(--muted); font-style: italic; }
-.rc-sep { display: none; }
-.rc-body { padding: 14px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; align-items: start; }
-.rc-row { display: flex; align-items: center; gap: 10px; }
-.rc-label { font-size: 13px; color: var(--muted); min-width: 150px; flex-shrink: 0; }
-.rc-inp {
-  flex: 1;
-  border: none;
-  border-bottom: 2px solid var(--border);
-  background: transparent;
-  color: var(--text);
-  padding: 6px 0;
-  font-size: 14px;
-  font-family: var(--mono);
-}
-.rc-inp:focus { outline: none; border-bottom-color: var(--accent); }
-.rc-inp.filled { border-bottom-color: var(--accent); }
-.rc-check { font-size: 13px; color: var(--success); opacity: 0; transition: opacity .2s; width: 16px; }
-.rc-check.filled { opacity: 1; }
-.rc-sug-btn {
-  background: none;
-  border: none;
-  font-size: 12px;
-  color: var(--muted);
-  cursor: pointer;
-  padding: 0;
-  text-decoration: underline;
-  margin-left: 160px;
-}
-.rc-sug-btn:hover { color: var(--text); }
-.rc-chips { display: none; flex-wrap: wrap; gap: 6px; margin-left: 160px; margin-top: 4px; }
-.rc-chips.show { display: flex; }
-.rc-chip {
-  padding: 4px 10px;
-  background: var(--light);
-  border: 1px solid var(--border);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: var(--mono);
-}
-.rc-chip:hover, .rc-chip.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .hdr-btn:hover {
+      background: var(--light);
+      color: var(--text);
+    }
 
-/* ── Step 3: Write ── */
-#page3.active { display: flex; gap: 36px; align-items: flex-start; flex-wrap: wrap; padding: 28px; max-width: none; justify-content: center; }
-#page3 .col-words,
-#page3 .col-rap { margin-top: 0; }
-.col-words {
-  flex-shrink: 0;
-  width: 240px;
-  position: sticky;
-  top: 0;
-  max-height: calc(100vh - 52px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.col-rap { flex: 1; min-width: 0; max-width: 900px; }
+    .hdr-btn.danger {
+      color: var(--danger);
+    }
 
-/* Word list for step 3 */
-.wl3-groups { display: flex; flex-direction: column; gap: 0; overflow-y: auto; flex: 1; }
-.wl3-group { padding: 8px 0; border-bottom: 1px solid var(--border); }
-.wl3-row { display: flex; gap: 5px; flex-wrap: wrap; margin: 3px 0; }
-.wl3-chip {
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 10px;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  user-select: none;
-}
-.wl3-word { background: var(--accent); color: #fff; border-color: var(--accent); }
-.wl3-word:hover { background: var(--accent-hover); }
-.wl3-assoc { background: var(--white); color: var(--muted); font-weight: 400; }
-.wl3-assoc:hover { background: var(--light); color: var(--text); }
-.wl3-rhyme { background: var(--white); color: var(--text); border-style: dashed; }
-.wl3-rhyme:hover { background: var(--accent); color: #fff; border-style: solid; border-color: var(--accent); }
-.wl3-used { opacity: 0.3; cursor: default; text-decoration: line-through; pointer-events: none; }
+    .hdr-save-status {
+      display: none;
+    }
 
-/* Progress */
-.progress-section { margin-top: 16px; }
-.progress-label { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
-.progress-bar { height: 4px; background: var(--border); }
-.progress-fill { height: 100%; background: var(--accent); transition: width .3s; width: 0%; }
+    font-size: 13px;
+    color: var(--muted);
+    padding: 0 14px;
+    border-left: 1px solid var(--border);
+    height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    display: none;
+    }
 
-/* Rap lines */
-.rap-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-.rap-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
-.btn-copy {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 5px 12px;
-  font-size: 12px;
-  cursor: pointer;
-  display: none;
-}
-.btn-copy:hover { border-color: var(--border-dark); color: var(--text); }
-.btn-copy.done { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .autosave-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background .3s;
+    }
 
-.rap-lines { display: flex; flex-direction: column; }
-.rap-line {
-  display: flex;
-  align-items: center;
-  border-left: 3px solid transparent;
-  border-bottom: 1px solid var(--border);
-  cursor: text;
-  background: var(--white);
-}
-.rap-line.active { border-left-color: var(--accent); background: #f0f0f0; }
-.line-num {
-  padding: 14px 10px 14px 14px;
-  font-size: 13px;
-  color: var(--muted);
-  font-family: var(--mono);
-  user-select: none;
-  width: 38px;
-  flex-shrink: 0;
-}
-.rap-line.active .line-num { color: var(--text); font-weight: 700; }
-.line-input {
-  flex: 1;
-  min-width: 40px;
-  background: transparent;
-  border: none;
-  color: var(--text);
-  padding: 14px 8px;
-  font-size: 18px;
-  font-family: var(--mono);
-  cursor: text;
-  white-space: nowrap;
-  overflow: hidden;
-}
-.line-input:focus { outline: none; }
-.line-endword {
-  flex-shrink: 0;
-  padding: 14px 16px 14px 8px;
-  color: var(--text);
-  font-weight: 700;
-  font-size: 18px;
-  font-family: var(--mono);
-  white-space: nowrap;
-  cursor: pointer;
-  opacity: 0.55;
-}
-.line-endword:hover { opacity: 1; text-decoration: line-through; }
+    .autosave-dot.saving {
+      background: #e09900;
+    }
 
-.rap-actions { margin-top: 14px; display: flex; flex-direction: column; gap: 7px; }
-.btn-save {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 10px 18px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  align-self: flex-start;
-}
-.btn-save:hover { background: var(--accent-hover); }
-.btn-view-rap {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 8px 16px;
-  font-size: 14px;
-  cursor: pointer;
-  display: none;
-  align-self: flex-start;
-}
-.btn-view-rap:hover { border-color: var(--border-dark); color: var(--text); }
+    .autosave-dot.saved {
+      background: var(--success);
+    }
 
-/* ── Step 4: Drum ── */
-#page4 { max-width: none; }
-#page4.active { display: flex; flex-direction: column; align-items: center; }
-.s4-layout { display: flex; gap: 48px; align-items: flex-start; justify-content: center; }
+    .autosave-dot.err {
+      background: var(--danger);
+    }
 
-/* Rap tekst links in stap 4 */
-.s4-rap {
-  flex: 0 0 220px;
-  padding-right: 36px;
-  border-right: 1px solid var(--border);
-}
-.s4-rap-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
-.s4-rap-lines { display: flex; flex-direction: column; }
-.s4-rap-line {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-  font-family: var(--mono);
-}
-.s4-line-num { color: var(--muted); min-width: 22px; flex-shrink: 0; font-size: 12px; }
-.s4-line-txt { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.s4-line-end { font-weight: 700; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+    .hdr-teacher-badge {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      padding: 3px 10px;
+      border: 1px solid var(--border);
+      margin-right: 8px;
+      text-transform: uppercase;
+    }
 
-/* Drum machine */
-.s4-drum { flex: 1; min-width: 0; padding-left: 36px; }
-.drum-transport { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-.drum-play-btn {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 9px 22px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  min-width: 90px;
-}
-.drum-play-btn:hover { background: var(--accent-hover); }
-.drum-play-btn.playing { background: #444; }
-.drum-bpm-wrap { display: flex; align-items: center; gap: 8px; }
-.drum-bpm-label { font-size: 13px; font-weight: 700; color: var(--muted); }
-.drum-bpm-inp {
-  width: 60px;
-  border: 1px solid var(--border);
-  background: var(--white);
-  color: var(--text);
-  padding: 7px 10px;
-  font-size: 14px;
-  text-align: center;
-}
-.drum-clear-btn {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 7px 14px;
-  font-size: 13px;
-  cursor: pointer;
-}
-.drum-clear-btn:hover { border-color: var(--border-dark); color: var(--text); }
+    /* ── Views ── */
+    .view {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+    }
 
-.drum-grid { display: flex; flex-direction: column; gap: 4px; }
-.drum-step-nums { display: flex; align-items: center; margin-bottom: 4px; }
-.drum-row-label { width: 60px; flex-shrink: 0; }
-.drum-nums { display: flex; gap: 4px; }
-.drum-num {
-  width: 34px;
-  text-align: center;
-  font-size: 11px;
-  color: var(--muted);
-  font-family: var(--mono);
-  flex-shrink: 0;
-}
-.drum-num.beat { color: var(--text); font-weight: 700; }
-.drum-row { display: flex; align-items: center; }
-.drum-row-name {
-  width: 60px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--text);
-  font-family: var(--mono);
-  flex-shrink: 0;
-}
-.drum-steps { display: flex; gap: 4px; }
-.drum-step {
-  width: 34px;
-  height: 34px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background .08s;
-}
-.drum-step:hover { background: var(--light); }
-.drum-step.on { background: var(--accent); border-color: var(--accent); }
-.drum-step.beat-start { border-left: 2px solid var(--border-dark); }
-.drum-step.playing { background: #777 !important; }
-.drum-step.on.playing { background: var(--white) !important; border-color: var(--border-dark) !important; }
+    .view.active {
+      display: flex;
+    }
 
-/* ── My rap view ── */
-.my-rap-wrap { padding: 36px 28px; max-width: 680px; margin: 0 auto; }
-.my-rap-central {
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 20px;
-}
-.my-rap-central span { color: var(--text); font-weight: 700; }
-.my-rap-lines { display: flex; flex-direction: column; border-top: 1px solid var(--border); }
-.my-rap-line {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border);
-}
-.mrl-num { font-size: 12px; color: var(--muted); font-family: var(--mono); min-width: 24px; }
-.mrl-text { font-family: var(--mono); font-size: 16px; }
-.mrl-endword { font-family: var(--mono); font-size: 16px; font-weight: 700; text-decoration: underline; }
-.my-rap-actions { margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .view-center {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px;
+      overflow-y: auto;
+    }
 
-/* ── Teacher gallery ── */
-.gallery-wrap { padding: 32px 28px; max-width: 1080px; margin: 0 auto; }
-.gallery-topbar { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 10px; }
-.gallery-filters {
-  display: none;
-  gap: 16px;
-  align-items: flex-end;
-  margin-bottom: 20px;
-  padding: 14px 16px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  flex-wrap: wrap;
-}
-.filter-group { display: flex; flex-direction: column; gap: 4px; }
-.filter-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-.filter-select {
-  background: var(--white);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 7px 12px;
-  font-size: 14px;
-  cursor: pointer;
-  min-width: 160px;
-}
-.filter-count { font-size: 13px; color: var(--muted); padding-bottom: 7px; }
-.gallery-empty, .gallery-loading { color: var(--muted); font-size: 14px; padding: 40px 0; text-align: center; }
+    /* ── Welcome screen ── */
+    .welcome-box {
+      width: 100%;
+      max-width: 420px;
+    }
 
-/* Gallery table */
-.gallery-table { width: 100%; border-collapse: collapse; }
-.gallery-table thead th {
-  text-align: left;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--muted);
-  padding: 0 12px 10px;
-  border-bottom: 2px solid var(--text);
-}
-.gallery-table thead th:first-child { padding-left: 0; }
-.gallery-table tbody tr { border-bottom: 1px solid var(--border); }
-.gallery-table tbody tr:hover { background: var(--light); }
-.gallery-table td {
-  padding: 11px 12px;
-  font-size: 14px;
-  vertical-align: middle;
-}
-.gallery-table td:first-child { padding-left: 0; }
-.gc-name { font-weight: 700; color: var(--text); }
-.gc-meta { color: var(--muted); font-size: 13px; }
-.gc-count { color: var(--muted); font-size: 13px; }
-.gc-count.full { color: var(--success); font-weight: 700; }
-.gc-actions { display: flex; gap: 6px; }
-.btn-view {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.btn-view:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-.btn-del-row {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 5px 8px;
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
-}
-.btn-del-row:hover { border-color: var(--danger); color: var(--danger); }
+    .welcome-title {
+      font-family: var(--mono);
+      font-size: 36px;
+      font-weight: bold;
+      letter-spacing: 0.12em;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
 
-/* ── Teacher detail ── */
-.detail-wrap { padding: 36px 32px; max-width: 1200px; margin: 0 auto; }
-.detail-topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 2px solid var(--text); flex-wrap: wrap; gap: 12px; }
-.detail-name { font-size: 22px; font-weight: 700; }
-.detail-meta { font-size: 13px; color: var(--muted); margin-top: 4px; }
-.detail-body { display: flex; flex-direction: column; gap: 32px; }
-.detail-left { width: 100%; }
-.detail-right { width: 100%; }
-.detail-section { margin-bottom: 32px; }
-.detail-section-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-}
+    .welcome-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
 
-/* Word table in detail */
-.detail-word-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 13px; }
-.detail-word-table th {
-  text-align: left;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--muted);
-  padding: 0 10px 8px 0;
-  border-bottom: 1px solid var(--border);
-}
-.detail-word-table td { padding: 7px 10px 7px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
-.detail-word-table td:nth-child(1) { font-weight: 700; }
-.detail-word-table td:nth-child(2) { color: var(--muted); font-style: italic; }
-.detail-word-table td:nth-child(3),
-.detail-word-table td:nth-child(4) { color: var(--text); }
-.detail-arrow { color: var(--muted); padding: 0 4px; }
+    .form-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
 
-/* Rap lines in detail */
-.detail-rap { display: flex; flex-direction: column; }
-.detail-rap-line { display: flex; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--border); align-items: baseline; }
-.drl-num { font-size: 11px; color: var(--muted); min-width: 24px; font-family: var(--mono); }
-.drl-text { font-family: var(--mono); font-size: 15px; flex: 1; }
-.drl-end { font-family: var(--mono); font-size: 15px; font-weight: 700; text-decoration: underline; white-space: nowrap; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 16px;
+      margin-bottom: 16px;
+    }
 
-/* Beat grid in detail (read-only) */
-.detail-beat { display: flex; flex-direction: column; gap: 5px; }
-.detail-beat-bpm { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-.detail-beat-row { display: flex; align-items: center; gap: 0; }
-.detail-beat-label { width: 52px; font-size: 12px; font-weight: 700; font-family: var(--mono); color: var(--text); flex-shrink: 0; }
-.detail-beat-steps { display: flex; gap: 3px; }
-.detail-beat-step {
-  width: 28px;
-  height: 28px;
-  background: var(--light);
-  border: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.detail-beat-step.on { background: var(--accent); border-color: var(--accent); }
-.detail-beat-step.beat-start { border-left: 2px solid var(--border-dark); }
-.detail-beat-nums { display: flex; align-items: center; margin-bottom: 4px; }
-.detail-beat-num-label { width: 52px; flex-shrink: 0; }
-.detail-beat-num-row { display: flex; gap: 3px; }
-.detail-beat-num {
-  width: 28px;
-  text-align: center;
-  font-size: 10px;
-  color: var(--muted);
-  font-family: var(--mono);
-  flex-shrink: 0;
-}
-.detail-beat-num.beat { color: var(--text); font-weight: 700; }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
 
-.btn-delete-entry {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 9px 20px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 28px;
-}
-.btn-delete-entry:hover { border-color: var(--danger); color: var(--danger); }
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
 
-/* ── Save bar ── */
-.save-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 24px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-  flex-wrap: wrap;
-}
-.save-status { font-size: 13px; color: var(--muted); }
-.save-status.ok { color: var(--success); }
-.save-status.err { color: var(--danger); }
+    .form-input {
+      background: var(--white);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 12px;
+      font-size: 14px;
+      width: 100%;
+    }
 
-/* ── Footer ── */
-.site-footer {
-  border-top: 1px solid var(--border);
-  padding: 12px 28px;
-  font-size: 12px;
-  color: var(--muted);
-  text-align: center;
-  flex-shrink: 0;
-}
+    .form-input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 0;
+    }
 
-/* ── Toast ── */
-.toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: var(--accent);
-  color: #fff;
-  padding: 11px 18px;
-  font-size: 13px;
-  font-weight: 700;
-  opacity: 0;
-  transition: opacity .25s;
-  pointer-events: none;
-  z-index: 1000;
-}
-.toast.show { opacity: 1; }
-</style>
+    .err-msg {
+      font-size: 13px;
+      color: var(--danger);
+      margin: 8px 0;
+      display: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 11px 20px;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-primary:disabled {
+      background: var(--border);
+      color: var(--muted);
+      cursor: default;
+    }
+
+    .btn-primary.full {
+      width: 100%;
+    }
+
+    .btn-secondary {
+      background: var(--white);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 9px 18px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: var(--light);
+      border-color: var(--border-dark);
+    }
+
+    .btn-link {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 0;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .btn-link:hover {
+      color: var(--text);
+    }
+
+    .welcome-teacher-row {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .load-notice {
+      background: var(--white);
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .load-notice p {
+      margin-bottom: 10px;
+    }
+
+    .notice-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* ── Main content ── */
+    .main {
+      flex: 1;
+      overflow: auto;
+    }
+
+    .page {
+      display: none;
+      padding: 32px 28px;
+      max-width: 1080px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    #page1 {
+      padding: 0;
+      max-width: none;
+      margin: 0;
+      overflow-x: auto;
+    }
+
+    /* Page headings */
+    .page-heading {
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+
+    .page-title {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 0.12em;
+      color: var(--text);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .page-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .page-desc {
+      font-size: 14px;
+      color: var(--text);
+      margin-top: 4px;
+      max-width: 560px;
+    }
+
+    /* Field label */
+    .field-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    /* ── Input styles ── */
+    .input-group {
+      display: flex;
+    }
+
+    .input-group input {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-right: none;
+      background: var(--white);
+      color: var(--text);
+      padding: 9px 12px;
+      font-size: 14px;
+    }
+
+    .input-group input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 0;
+      z-index: 1;
+    }
+
+    .btn-attach {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      font-weight: 600;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .btn-attach:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-attach.off {
+      background: var(--light);
+      color: var(--muted);
+      cursor: default;
+    }
+
+    /* ── Step 1 layout ── */
+    .s1-layout {
+      display: flex;
+      gap: 0;
+      align-items: flex-start;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      padding: 0 12px;
+    }
+
+    .s1-inputs-col {
+      flex: 0 0 260px;
+      padding: 28px 12px 28px 20px;
+    }
+
+    .s1-spin-col {
+      flex: 0 0 auto;
+      padding: 28px 0;
+    }
+
+    .s1-list-col {
+      flex: 0 0 280px;
+      padding: 28px 20px 28px 12px;
+    }
+
+    /* In stap 1: smallere boxen zodat er ruimte is voor verbindingslijntjes */
+    .s1-spin-col .spin-center { width: 140px; height: 44px; font-size: 15px; }
+    .s1-spin-col .spin-node,
+    .s1-spin-col .spin-assoc-node { width: 120px; height: 36px; font-size: 13px; }
+
+    /* Chromebook-formaat: nóg krappere boxen om in 680px canvas te passen */
+    .s1-spin-col .spin-wrap.narrow .spin-center { width: 120px; height: 40px; font-size: 14px; }
+    .s1-spin-col .spin-wrap.narrow .spin-node,
+    .s1-spin-col .spin-wrap.narrow .spin-assoc-node { width: 100px; height: 32px; font-size: 12px; }
+
+    /* Confirmed central word */
+    .central-confirmed {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .central-tag {
+      background: var(--accent);
+      color: #fff;
+      padding: 7px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: var(--mono);
+    }
+
+    .btn-edit {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-edit:hover {
+      border-color: var(--border-dark);
+      color: var(--text);
+    }
+
+    /* Word list */
+    #word-section {
+      margin-top: 20px;
+    }
+
+    .word-entries {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-top: 10px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .word-entry {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      background: var(--white);
+      overflow: hidden;
+    }
+
+    .we-word {
+      padding: 7px 12px;
+      font-weight: 700;
+      font-size: 13px;
+      background: var(--accent);
+      color: #fff;
+      min-width: 90px;
+      font-family: var(--mono);
+    }
+
+    .we-assoc {
+      flex: 1;
+      padding: 7px 12px;
+      font-size: 13px;
+      color: var(--text);
+      font-style: italic;
+    }
+
+    .we-del {
+      background: none;
+      border: none;
+      border-left: 1px solid var(--border);
+      color: var(--muted);
+      padding: 7px 10px;
+      font-size: 16px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .we-del:hover {
+      background: var(--light);
+      color: var(--danger);
+    }
+
+    .word-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+
+    .word-inputs input {
+      border: 1px solid var(--border);
+      background: var(--white);
+      color: var(--text);
+      padding: 8px 12px;
+      font-size: 14px;
+      width: 100%;
+    }
+
+    .word-inputs input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 0;
+    }
+
+    .hint-ok {
+      font-size: 13px;
+      color: var(--success);
+      font-weight: 600;
+      margin-top: 8px;
+      display: none;
+    }
+
+    /* ── Top nav bar per stap ── */
+    .page-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 28px;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 52px;
+      z-index: 9;
+      gap: 10px;
+    }
+
+    .page-nav-left {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .page-nav-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .page-nav-title {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Navigation row */
+    .nav-row {
+      margin-top: 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .nav-row.right {
+      justify-content: flex-end;
+    }
+
+    .btn-nav-next {
+      background: var(--light);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 10px 22px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: default;
+    }
+
+    .btn-nav-next.on {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .btn-nav-next.on:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-nav-back {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 10px 22px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-nav-back:hover {
+      border-color: var(--border-dark);
+      color: var(--text);
+    }
+
+    /* Spin visualization */
+    .spin-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .spin-center {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 0.06em;
+      z-index: 4;
+      background: var(--accent);
+      color: #fff;
+      width: 160px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      padding: 0 8px;
+    }
+
+    .spin-center.empty {
+      background: var(--light);
+      color: var(--muted);
+      border: 1px dashed var(--border);
+    }
+
+    .spin-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      z-index: 3;
+      background: var(--white);
+      color: var(--text);
+      border: 1px solid var(--border);
+      width: 150px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      padding: 0 8px;
+      cursor: default;
+    }
+
+    .spin-node.editable:hover {
+      border-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .spin-assoc-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 3;
+      background: var(--light);
+      color: var(--text);
+      border: 1px solid var(--border-dark);
+      width: 150px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      padding: 0 8px;
+      cursor: default;
+    }
+
+    .spin-assoc-node.editable:hover {
+      border-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .spin-rhyme-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      z-index: 3;
+      background: var(--white);
+      color: var(--text);
+      border: 1px solid var(--border-dark);
+      padding: 8px 14px;
+      white-space: nowrap;
+    }
+
+    .spin-rhyme-node.assoc-rhyme {
+      font-weight: 400;
+      font-style: italic;
+      color: var(--muted);
+      border-style: dashed;
+    }
+
+    /* Inline edit popup */
+    .spin-edit-popup {
+      position: absolute;
+      z-index: 10;
+      background: var(--white);
+      border: 2px solid var(--accent);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .15);
+      transform: translate(-50%, -50%);
+    }
+
+    .spin-edit-popup input {
+      border: none;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 12px;
+      font-size: 14px;
+      background: transparent;
+      color: var(--text);
+      min-width: 130px;
+    }
+
+    .spin-edit-popup input.single {
+      border-bottom: none;
+    }
+
+    .spin-edit-popup input:focus {
+      outline: none;
+      background: #fafafa;
+    }
+
+    .spin-edit-actions {
+      display: flex;
+      border-top: 1px solid var(--border);
+    }
+
+    .spin-edit-ok {
+      flex: 1;
+      padding: 7px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .spin-edit-ok:hover {
+      background: var(--accent-hover);
+    }
+
+    .spin-edit-del {
+      padding: 7px 12px;
+      background: none;
+      border: none;
+      border-left: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .spin-edit-del:hover {
+      color: var(--danger);
+      background: var(--light);
+    }
+
+    /* ── Step 2: Rhyme cards ── */
+    .rhyme-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .rhyme-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      width: 100%;
+    }
+
+    .rc-body {
+      padding: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .rc-cell {
+      padding: 18px 20px;
+    }
+
+    .rc-cell + .rc-cell {
+      border-left: 1px solid var(--border);
+    }
+
+    .rc-cell.assoc {
+      background: var(--light);
+    }
+
+    .rc-target {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+
+    .rc-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .rc-word-big {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
+
+    .rc-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .rc-inp {
+      flex: 1;
+      border: 1px solid var(--border);
+      background: var(--white);
+      color: var(--text);
+      padding: 8px 10px;
+      font-size: 15px;
+      font-family: var(--mono);
+      font-weight: 700;
+    }
+
+    .rc-inp:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .rc-inp.filled {
+      border-color: var(--accent);
+    }
+
+    .rc-check {
+      font-size: 14px;
+      color: var(--success);
+      opacity: 0;
+      transition: opacity .2s;
+      width: 16px;
+      font-weight: 700;
+    }
+
+    .rc-check.filled {
+      opacity: 1;
+    }
+
+    .rc-sug-btn {
+      background: var(--white);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-family: var(--mono);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text);
+      cursor: pointer;
+      padding: 6px 12px;
+    }
+
+    .rc-cell.assoc .rc-sug-btn {
+      background: #fff;
+    }
+
+    .rc-sug-btn:hover,
+    .rc-sug-btn.open {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .rc-chips {
+      display: none;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .rc-chips.show {
+      display: flex;
+    }
+
+    .rc-chips-empty {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .rc-chips-empty.show {
+      display: block;
+    }
+
+    .rc-chip {
+      padding: 5px 10px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--mono);
+    }
+
+    .rc-cell.assoc .rc-chip {
+      background: #fff;
+    }
+
+    .rc-chip:hover,
+    .rc-chip.selected {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    @media (max-width: 720px) {
+      .rc-body { grid-template-columns: 1fr; }
+      .rc-cell + .rc-cell { border-left: none; border-top: 1px solid var(--border); }
+    }
+
+    /* ── Step 3: Write ── */
+    #page3.active {
+      display: flex;
+      gap: 36px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      padding: 28px;
+      max-width: none;
+      justify-content: center;
+    }
+
+    #page3 .col-words,
+    #page3 .col-rap {
+      margin-top: 0;
+    }
+
+    .col-words {
+      flex-shrink: 0;
+      width: 240px;
+      position: sticky;
+      top: 0;
+      max-height: calc(100vh - 52px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .col-rap {
+      flex: 1;
+      min-width: 0;
+      max-width: 900px;
+    }
+
+    /* Word list for step 3 */
+    .wl3-groups {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .wl3-group {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .wl3-row {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin: 3px 0;
+    }
+
+    .wl3-chip {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      user-select: none;
+    }
+
+    .wl3-word {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .wl3-word:hover {
+      background: var(--accent-hover);
+    }
+
+    .wl3-assoc {
+      background: var(--light);
+      color: var(--text);
+      border-color: var(--border-dark);
+    }
+
+    .wl3-assoc:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .wl3-rhyme {
+      background: var(--white);
+      color: var(--text);
+      border-style: dashed;
+    }
+
+    .wl3-rhyme:hover {
+      background: var(--accent);
+      color: #fff;
+      border-style: solid;
+      border-color: var(--accent);
+    }
+
+    .wl3-used {
+      opacity: 0.3;
+      cursor: default;
+      text-decoration: line-through;
+      pointer-events: none;
+    }
+
+    /* Progress */
+    .progress-section {
+      margin-top: 16px;
+    }
+
+    .progress-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width .3s;
+      width: 0%;
+    }
+
+    /* Rap lines */
+    .rap-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .rap-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .rap-lines {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .rap-line {
+      display: flex;
+      align-items: center;
+      border-left: 3px solid transparent;
+      border-bottom: 1px solid var(--border);
+      cursor: text;
+      background: var(--white);
+    }
+
+    .rap-line.active {
+      border-left-color: var(--accent);
+      background: #f0f0f0;
+    }
+
+    .line-num {
+      padding: 14px 10px 14px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      font-family: var(--mono);
+      user-select: none;
+      width: 38px;
+      flex-shrink: 0;
+    }
+
+    .rap-line.active .line-num {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .line-input {
+      flex: 1;
+      min-width: 40px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      padding: 14px 8px;
+      font-size: 18px;
+      font-family: var(--mono);
+      cursor: text;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .line-word-count {
+      display: none;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 10px 2px 6px;
+      flex-shrink: 0;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .line-word-count.short { color: var(--danger); }
+    .line-word-count.ok    { color: var(--success); }
+
+    .line-endword {
+      flex-shrink: 0;
+      padding: 14px 16px 14px 8px;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 18px;
+      font-family: var(--mono);
+      white-space: nowrap;
+      cursor: pointer;
+      opacity: 0.55;
+    }
+
+    .line-endword:hover {
+      opacity: 1;
+      text-decoration: line-through;
+    }
+
+    .rap-actions {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .btn-save {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      align-self: flex-start;
+    }
+
+    .btn-save:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-print {
+      background: var(--white);
+      color: var(--text);
+      border: 1px solid var(--accent);
+      padding: 9px 18px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      align-self: flex-start;
+      font-family: var(--mono);
+    }
+
+    .btn-print:hover {
+      background: var(--light);
+    }
+
+    .btn-view-rap {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      display: none;
+      align-self: flex-start;
+    }
+
+    .btn-view-rap:hover {
+      border-color: var(--border-dark);
+      color: var(--text);
+    }
+
+    /* ── Step 5: Drum ── */
+    #page4 {
+      max-width: none;
+    }
+
+    #page4.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+
+    .s4-layout {
+      display: flex;
+      gap: 48px;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    /* Rap tekst links in stap 4 */
+    .s4-rap {
+      flex: 0 0 220px;
+      padding-right: 36px;
+      border-right: 1px solid var(--border);
+    }
+
+    .s4-rap-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 10px;
+    }
+
+    .s4-rap-lines {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .s4-rap-line {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-family: var(--mono);
+    }
+
+    .s4-line-num {
+      color: var(--muted);
+      min-width: 22px;
+      flex-shrink: 0;
+      font-size: 12px;
+    }
+
+    .s4-line-txt {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .s4-line-end {
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* Drum machine */
+    .s4-drum {
+      flex: 1;
+      min-width: 0;
+      padding-left: 36px;
+    }
+
+    .drum-transport {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .drum-play-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 9px 22px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      min-width: 90px;
+    }
+
+    .drum-play-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .drum-play-btn.playing {
+      background: #444;
+    }
+
+    .drum-bpm-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .drum-bpm-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .drum-bpm-inp {
+      width: 60px;
+      border: 1px solid var(--border);
+      background: var(--white);
+      color: var(--text);
+      padding: 7px 10px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .drum-clear-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 7px 14px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .drum-clear-btn:hover {
+      border-color: var(--border-dark);
+      color: var(--text);
+    }
+
+    .drum-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .drum-step-nums {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .drum-row-label {
+      width: 60px;
+      flex-shrink: 0;
+    }
+
+    .drum-nums {
+      display: flex;
+      gap: 4px;
+    }
+
+    .drum-num {
+      width: 34px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+      flex-shrink: 0;
+    }
+
+    .drum-num.beat {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .drum-row {
+      display: flex;
+      align-items: center;
+    }
+
+    .drum-row-name {
+      width: 60px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      font-family: var(--mono);
+      flex-shrink: 0;
+    }
+
+    .drum-steps {
+      display: flex;
+      gap: 4px;
+    }
+
+    .drum-step {
+      width: 34px;
+      height: 34px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background .08s;
+    }
+
+    .drum-step:hover {
+      background: var(--light);
+    }
+
+    .drum-step.on {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .drum-step.beat-start {
+      border-left: 2px solid var(--border-dark);
+    }
+
+    .drum-step.playing {
+      background: #777 !important;
+    }
+
+    .drum-step.on.playing {
+      background: var(--white) !important;
+      border-color: var(--border-dark) !important;
+    }
+
+    /* ── My rap view ── */
+    .my-rap-wrap {
+      padding: 36px 28px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .my-rap-central {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .my-rap-central span {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .my-rap-lines {
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid var(--border);
+    }
+
+    .my-rap-line {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mrl-num {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+      min-width: 24px;
+    }
+
+    .mrl-text {
+      font-family: var(--mono);
+      font-size: 16px;
+    }
+
+    .mrl-endword {
+      font-family: var(--mono);
+      font-size: 16px;
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    .my-rap-actions {
+      margin-top: 24px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ── Teacher gallery ── */
+    .gallery-wrap {
+      padding: 32px 28px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .gallery-topbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .gallery-filters {
+      display: none;
+      gap: 16px;
+      align-items: flex-end;
+      margin-bottom: 20px;
+      padding: 14px 16px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .filter-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    .filter-select {
+      background: var(--white);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      min-width: 160px;
+    }
+
+    .filter-count {
+      font-size: 13px;
+      color: var(--muted);
+      padding-bottom: 7px;
+    }
+
+    .gallery-empty,
+    .gallery-loading {
+      color: var(--muted);
+      font-size: 14px;
+      padding: 40px 0;
+      text-align: center;
+    }
+
+    /* Gallery table */
+    .gallery-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .gallery-table thead th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      padding: 0 12px 10px;
+      border-bottom: 2px solid var(--text);
+    }
+
+    .gallery-table thead th:first-child {
+      padding-left: 0;
+    }
+
+    .gallery-table tbody tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .gallery-table tbody tr:hover {
+      background: var(--light);
+    }
+
+    .gallery-table td {
+      padding: 11px 12px;
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    .gallery-table td:first-child {
+      padding-left: 0;
+    }
+
+    .gc-name {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .gc-meta {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .gc-count {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .gc-count.full {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .gc-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-view {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-view:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn-del-row {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 5px 8px;
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .btn-del-row:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    /* ── Teacher detail ── */
+    .detail-wrap {
+      padding: 36px 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .detail-topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--text);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .detail-name {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .detail-meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .detail-body {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .detail-left {
+      width: 100%;
+    }
+
+    .detail-right {
+      width: 100%;
+    }
+
+    .detail-section {
+      margin-bottom: 32px;
+    }
+
+    .detail-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Word table in detail */
+    .detail-word-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .detail-word-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      padding: 0 10px 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-word-table td {
+      padding: 7px 10px 7px 0;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .detail-word-table td:nth-child(1) {
+      font-weight: 700;
+    }
+
+    .detail-word-table td:nth-child(2) {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .detail-word-table td:nth-child(3),
+    .detail-word-table td:nth-child(4) {
+      color: var(--text);
+    }
+
+    .detail-arrow {
+      color: var(--muted);
+      padding: 0 4px;
+    }
+
+    /* Rap lines in detail */
+    .detail-rap {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .detail-rap-line {
+      display: flex;
+      gap: 16px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: baseline;
+    }
+
+    .drl-num {
+      font-size: 11px;
+      color: var(--muted);
+      min-width: 24px;
+      font-family: var(--mono);
+    }
+
+    .drl-text {
+      font-family: var(--mono);
+      font-size: 15px;
+      flex: 1;
+    }
+
+    .drl-end {
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: underline;
+      white-space: nowrap;
+    }
+
+    /* Beat grid in detail (read-only) */
+    .detail-beat {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .detail-beat-bpm {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .detail-beat-row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+
+    .detail-beat-label {
+      width: 52px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    .detail-beat-steps {
+      display: flex;
+      gap: 3px;
+    }
+
+    .detail-beat-step {
+      width: 28px;
+      height: 28px;
+      background: var(--light);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .detail-beat-step.on {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .detail-beat-step.beat-start {
+      border-left: 2px solid var(--border-dark);
+    }
+
+    .detail-beat-nums {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .detail-beat-num-label {
+      width: 52px;
+      flex-shrink: 0;
+    }
+
+    .detail-beat-num-row {
+      display: flex;
+      gap: 3px;
+    }
+
+    .detail-beat-num {
+      width: 28px;
+      text-align: center;
+      font-size: 10px;
+      color: var(--muted);
+      font-family: var(--mono);
+      flex-shrink: 0;
+    }
+
+    .detail-beat-num.beat {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .btn-delete-entry {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 9px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 28px;
+    }
+
+    .btn-delete-entry:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    /* ── Save bar ── */
+    .save-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .save-status {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .save-status.ok {
+      color: var(--success);
+    }
+
+    .save-status.err {
+      color: var(--danger);
+    }
+
+    /* ── Footer ── */
+    .site-footer {
+      border-top: 1px solid var(--border);
+      padding: 12px 28px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--accent);
+      color: #fff;
+      padding: 11px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity .25s;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+  </style>
 </head>
+
 <body>
-<div id="app">
+  <div id="app">
 
-  <!-- HEADER -->
-  <div class="header">
-    <div class="logo" onclick="goHome()">RAPLAB</div>
-    <div class="hdr-mid" id="hdr-mid"></div>
-    <div class="hdr-right" id="hdr-right"></div>
-  </div>
+    <!-- HEADER -->
+    <div class="header">
+      <div class="logo" onclick="goHome()">RAPLAB</div>
+      <div class="hdr-mid" id="hdr-mid"></div>
+      <div class="hdr-right" id="hdr-right"></div>
+    </div>
 
-  <!-- VIEW: WELCOME -->
-  <div class="view active" id="v-welcome">
-    <div class="view-center">
-      <div class="welcome-box">
-        <div class="welcome-title">RAPLAB</div>
-        <div class="welcome-subtitle">Schrijf stap voor stap jouw eigen rap</div>
-        <div class="form-divider"></div>
+    <!-- VIEW: WELCOME -->
+    <div class="view active" id="v-welcome">
+      <div class="view-center">
+        <div class="welcome-box">
+          <div class="welcome-title">RAPLAB</div>
+          <div class="welcome-subtitle">Schrijf stap voor stap jouw eigen rap</div>
+          <div class="form-divider"></div>
 
-        <div class="form-grid">
-          <div class="form-field">
-            <div class="form-label">Jouw naam</div>
-            <input class="form-input" id="inp-name" />
+          <div class="form-grid">
+            <div class="form-field">
+              <div class="form-label">Jouw naam</div>
+              <input class="form-input" id="inp-name" />
+            </div>
+            <div class="form-field">
+              <div class="form-label">Titel van je rap</div>
+              <input class="form-input" id="inp-title" />
+            </div>
           </div>
-          <div class="form-field">
-            <div class="form-label">Titel van je rap</div>
-            <input class="form-input" id="inp-title" />
-          </div>
-          <div class="form-field">
-            <div class="form-label">School</div>
-            <input class="form-input" id="inp-school" />
-          </div>
-          <div class="form-field">
-            <div class="form-label">Klas</div>
-            <input class="form-input" id="inp-klas" />
-          </div>
-        </div>
 
-        <div class="err-msg" id="reg-err">Vul je naam in om verder te gaan.</div>
+          <div class="err-msg" id="reg-err">Vul je naam in om verder te gaan.</div>
 
-        <div class="load-notice" id="load-notice">
-          <p>Je hebt al een opgeslagen rap. Wil je verdergaan?</p>
-          <div class="notice-btns">
-            <button class="btn-primary" onclick="loadAndContinue()">Verdergaan</button>
-            <button class="btn-secondary" onclick="startFresh()">Opnieuw beginnen</button>
+          <div class="load-notice" id="load-notice">
+            <p>Je hebt al een opgeslagen rap. Wil je verdergaan?</p>
+            <div class="notice-btns">
+              <button class="btn-primary" onclick="loadAndContinue()">Verdergaan</button>
+              <button class="btn-secondary" onclick="startFresh()">Opnieuw beginnen</button>
+            </div>
           </div>
-        </div>
 
-        <button class="btn-primary full" id="btn-start" onclick="startStudent()">Begin</button>
+          <button class="btn-primary full" id="btn-start" onclick="startStudent()">Begin</button>
 
-        <div class="welcome-teacher-row">
-          <button class="btn-link" onclick="showView('v-teacher-login')">Inloggen als docent</button>
+          <div class="welcome-teacher-row">
+            <button class="btn-link" onclick="showView('v-teacher-login')">Inloggen als docent</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- VIEW: TEACHER LOGIN -->
-  <div class="view" id="v-teacher-login">
-    <div class="view-center">
-      <div class="welcome-box" style="max-width:320px">
-        <div class="welcome-title" style="font-size:24px">Docent inloggen</div>
-        <div class="form-divider"></div>
-        <div class="input-group" style="margin-bottom:8px">
-          <input type="password" id="inp-teacher-pw" placeholder="wachtwoord"
+    <!-- VIEW: TEACHER LOGIN -->
+    <div class="view" id="v-teacher-login">
+      <div class="view-center">
+        <div class="welcome-box" style="max-width:320px">
+          <div class="welcome-title" style="font-size:24px">Docent inloggen</div>
+          <div class="form-divider"></div>
+          <div class="input-group" style="margin-bottom:8px">
+            <input type="password" id="inp-teacher-pw" placeholder="wachtwoord"
                  onkeydown="if(event.key==='Enter')teacherLogin()" />
-          <button class="btn-attach" onclick="teacherLogin()">Inloggen</button>
+            <button class="btn-attach" onclick="teacherLogin()">Inloggen</button>
+          </div>
+          <div class="err-msg" id="teacher-err" style="display:none">Verkeerd wachtwoord.</div>
+          <button class="btn-secondary" style="margin-top:20px" onclick="showView('v-welcome')">Terug</button>
         </div>
-        <div class="err-msg" id="teacher-err" style="display:none">Verkeerd wachtwoord.</div>
-        <button class="btn-secondary" style="margin-top:20px" onclick="showView('v-welcome')">Terug</button>
       </div>
     </div>
-  </div>
 
-  <!-- VIEW: APP (stap 1–4) -->
-  <div class="view" id="v-app">
-    <div class="main" id="main-app">
+    <!-- VIEW: APP (stap 1–4) -->
+    <div class="view" id="v-app">
+      <div class="main" id="main-app">
 
-      <!-- STAP 1 -->
-      <div class="page active" id="page1">
-        <div class="s1-layout">
-          <!-- Kolom 1: invoer links -->
-          <div class="s1-inputs-col">
-            <div class="page-heading">
-              <div class="page-title">Stap 01</div>
-              <div class="page-name">Woordspin</div>
-              <div class="page-desc">Kies waar je rap over gaat en voeg woorden toe die daarbij passen.</div>
-            </div>
-            <div style="margin-bottom:20px">
-              <div class="field-label">Onderwerp van je rap</div>
-              <div id="c1-wrap">
-                <div class="input-group">
-                  <input id="c1input" placeholder="bijv. voetbal, vriendschap..." />
-                  <button class="btn-attach off" id="c1btn" onclick="confirmCentral()">Bevestigen</button>
+        <!-- STAP 1 -->
+        <div class="page active" id="page1">
+          <div class="s1-layout">
+            <!-- Kolom 1: invoer links -->
+            <div class="s1-inputs-col">
+              <div class="page-heading">
+                <div class="page-name">Woordspin</div>
+                <div class="page-desc">Kies waar je rap over gaat en voeg woorden toe die daarbij passen.</div>
+              </div>
+              <div style="margin-bottom:20px">
+                <div class="field-label">Onderwerp van je rap</div>
+                <div id="c1-wrap">
+                  <div class="input-group">
+                    <input id="c1input" placeholder="bijv. voetbal, vriendschap..." />
+                    <button class="btn-attach off" id="c1btn" onclick="confirmCentral()">Bevestigen</button>
+                  </div>
+                </div>
+                <div class="central-confirmed" id="c1-chip">
+                  <div class="central-tag" id="c1chip-txt"></div>
+                  <button class="btn-edit" onclick="resetCentral()">Wijzigen</button>
                 </div>
               </div>
-              <div class="central-confirmed" id="c1-chip">
-                <div class="central-tag" id="c1chip-txt"></div>
-                <button class="btn-edit" onclick="resetCentral()">Wijzigen</button>
+
+              <div id="word-section" style="display:none">
+                <div class="field-label">Woord toevoegen</div>
+                <div class="page-desc" style="margin-bottom:10px;font-size:13px">Typ een woord dat bij je onderwerp past
+                  en daarna een associatie.</div>
+                <div class="word-inputs">
+                  <input id="w1inp" placeholder="woord" onkeydown="if(event.key==='Enter')document.getElementById('a1inp').focus()" />
+                  <div class="input-group">
+                    <input id="a1inp" placeholder="associatie" onkeydown="if(event.key==='Enter')addWord()" />
+                    <button class="btn-attach" id="w1addbtn" onclick="addWord()">Toevoegen</button>
+                  </div>
+                </div>
+                <div class="hint-ok" id="hint1" style="display:none"></div>
               </div>
             </div>
 
-            <div id="word-section" style="display:none">
-              <div class="field-label">Woord toevoegen</div>
-              <div class="page-desc" style="margin-bottom:10px;font-size:13px">Typ een woord dat bij je onderwerp past en daarna een associatie.</div>
-              <div class="word-inputs">
-                <input id="w1inp" placeholder="woord" onkeydown="if(event.key==='Enter')document.getElementById('a1inp').focus()" />
-                <div class="input-group">
-                  <input id="a1inp" placeholder="associatie" onkeydown="if(event.key==='Enter')addWord()" />
-                  <button class="btn-attach" id="w1addbtn" onclick="addWord()">Toevoegen</button>
+            <!-- Kolom 2: woordspin midden -->
+            <div class="s1-spin-col">
+              <div class="spin-wrap" id="spin1-wrap" style="width:680px;height:680px">
+                <canvas id="spin1-cv" style="position:absolute;top:0;left:0;pointer-events:none"></canvas>
+              </div>
+            </div>
+
+            <!-- Kolom 3: woordenlijst rechts -->
+            <div class="s1-list-col" id="word-section-list" style="display:none">
+              <div class="field-label">Woorden (<span id="w1count">0</span>/8)</div>
+              <div id="word-entries" class="word-entries" style="max-height:600px;overflow-y:auto"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STAP 2: RIJMWOORDEN -->
+        <div class="page" id="page2">
+          <div style="max-width:860px;padding:28px;margin:0 auto">
+            <div id="rhyme-list"></div>
+            <div style="display:none">
+              <div id="spin2-wrap"><canvas id="spin2-cv"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STAP 3: SCHRIJVEN -->
+        <div class="page" id="page3">
+          <!-- Linker kolom: woorden -->
+          <div class="col-words">
+            <div class="page-heading" style="margin-bottom:16px">
+              <div class="page-name" style="font-size:18px">Schrijven</div>
+              <div class="page-desc" style="font-size:13px">Klik op een woord om het aan het einde van een zin toe te voegen.</div>
+            </div>
+            <div class="field-label" style="margin-bottom:8px">Beschikbare woorden</div>
+            <div id="word-list-3" class="wl3-groups"></div>
+            <div class="progress-section">
+              <div class="progress-label"><span id="rap-done">0</span> van 8 zinnen af</div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rechter kolom: rap schrijven -->
+          <div class="col-rap">
+            <div class="rap-header">
+              <div class="rap-title">Jouw rap — 8 zinnen</div>
+            </div>
+            <div class="rap-lines" id="rap-lines"></div>
+            <div class="rap-actions">
+              <button class="btn-print" onclick="printRap()">Print</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STAP 4: BEAT -->
+        <div class="page" id="page4">
+          <div class="s4-layout" style="padding:28px">
+            <!-- Rap tekst -->
+            <div class="s4-rap">
+              <div class="s4-rap-title">Jouw rap</div>
+              <div class="s4-rap-lines" id="s4-rap-lines"></div>
+            </div>
+            <!-- Drum grid -->
+            <div class="s4-drum">
+              <div class="drum-transport">
+                <button class="btn-nav-back" style="margin-right:8px" onclick="goTo(3)">Terug</button>
+                <button class="drum-play-btn" id="drum-play-btn" onclick="drumToggle()">Afspelen</button>
+                <div class="drum-bpm-wrap">
+                  <span class="drum-bpm-label">BPM</span>
+                  <input class="drum-bpm-inp" id="drum-bpm" type="number" value="90" min="60" max="200" onchange="drumSetBpm(this.value)" />
+                </div>
+                <button class="drum-clear-btn" onclick="drumClear()">Wissen</button>
+              </div>
+              <div class="drum-grid" id="drum-grid">
+                <div class="drum-step-nums">
+                  <div class="drum-row-label"></div>
+                  <div class="drum-nums" id="drum-step-nums"></div>
                 </div>
               </div>
-              <div class="hint-ok" id="hint1" style="display:none"></div>
-            </div>
-          </div>
-
-          <!-- Kolom 2: woordspin midden -->
-          <div class="s1-spin-col">
-            <div class="spin-wrap" id="spin1-wrap" style="width:900px;height:900px">
-              <canvas id="spin1-cv" style="position:absolute;top:0;left:0;pointer-events:none"></canvas>
-            </div>
-          </div>
-
-          <!-- Kolom 3: woordenlijst rechts -->
-          <div class="s1-list-col" id="word-section-list" style="display:none">
-            <div class="field-label">Woorden (<span id="w1count">0</span>/8)</div>
-            <div id="word-entries" class="word-entries" style="max-height:600px;overflow-y:auto"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- STAP 2 -->
-      <div class="page" id="page2">
-        <div style="max-width:860px;padding:28px;margin:0 auto">
-          <div id="rhyme-list"></div>
-          <div style="display:none"><div id="spin2-wrap"><canvas id="spin2-cv"></canvas></div></div>
-        </div>
-      </div>
-
-      <!-- STAP 3 -->
-      <div class="page" id="page3">
-        <!-- Linker kolom: woorden -->
-        <div class="col-words">
-          <div class="page-heading" style="margin-bottom:16px">
-            <div class="page-title">Stap 03</div>
-            <div class="page-name" style="font-size:18px">Schrijven</div>
-            <div class="page-desc" style="font-size:13px">Klik op een woord om het aan het einde van een zin toe te voegen.</div>
-          </div>
-          <div class="field-label" style="margin-bottom:8px">Beschikbare woorden</div>
-          <div id="word-list-3" class="wl3-groups"></div>
-          <div class="progress-section">
-            <div class="progress-label"><span id="rap-done">0</span> van 8 zinnen af</div>
-            <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-          </div>
-        </div>
-
-        <!-- Rechter kolom: rap schrijven -->
-        <div class="col-rap">
-          <div class="rap-header">
-            <div class="rap-title">Jouw rap — 8 zinnen</div>
-            <button class="btn-copy" id="btn-copy" onclick="copyRap()">Kopieer rap</button>
-          </div>
-          <div class="rap-lines" id="rap-lines"></div>
-          <div class="rap-actions">
-            <button class="btn-save" onclick="saveRap()">Rap opslaan</button>
-            <button class="btn-view-rap" id="btn-view-my-rap" onclick="showMyRap()" style="display:none">Bekijk mijn rap</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- STAP 4 -->
-      <div class="page" id="page4">
-        <div class="s4-layout" style="padding:28px">
-          <!-- Rap tekst -->
-          <div class="s4-rap">
-            <div class="s4-rap-title">Jouw rap</div>
-            <div class="s4-rap-lines" id="s4-rap-lines"></div>
-          </div>
-          <!-- Drum grid -->
-          <div class="s4-drum">
-            <div class="drum-transport">
-              <button class="drum-play-btn" id="drum-play-btn" onclick="drumToggle()">Afspelen</button>
-              <div class="drum-bpm-wrap">
-                <span class="drum-bpm-label">BPM</span>
-                <input class="drum-bpm-inp" id="drum-bpm" type="number" value="90" min="60" max="200" onchange="drumSetBpm(this.value)" />
-              </div>
-              <button class="drum-clear-btn" onclick="drumClear()">Wissen</button>
-            </div>
-            <div class="drum-grid" id="drum-grid">
-              <div class="drum-step-nums">
-                <div class="drum-row-label"></div>
-                <div class="drum-nums" id="drum-step-nums"></div>
+              <div class="save-bar">
+                <button class="btn-save" onclick="autoSave()">Beat opslaan</button>
               </div>
             </div>
-            <div class="save-bar">
-              <button class="btn-save" onclick="autoSave()">Beat opslaan</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VIEW: MY RAP -->
+    <div class="view" id="v-my-rap">
+      <div class="my-rap-wrap">
+        <div class="page-heading">
+          <div class="page-name" id="my-rap-title">Mijn rap</div>
+          <div class="page-desc" id="my-rap-date" style="margin-top:4px"></div>
+        </div>
+        <div class="my-rap-central" id="my-rap-central"></div>
+        <div class="my-rap-lines" id="my-rap-lines"></div>
+        <div class="my-rap-actions">
+          <button class="btn-primary" onclick="copyMyRap()">Kopieer rap</button>
+          <button class="btn-secondary" onclick="showView('v-app');goTo(3)">Terug naar bewerken</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: TEACHER SETTINGS -->
+    <div class="view" id="v-teacher-settings">
+      <div class="gallery-wrap">
+        <div class="gallery-topbar">
+          <div>
+            <div class="page-name">Instellingen</div>
+            <div class="page-desc">Beheer de scholen en klassen</div>
+          </div>
+          <button class="btn-secondary" onclick="showView('v-teacher-gallery')">Terug naar projecten</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:8px">
+          <!-- Scholen -->
+          <div>
+            <div class="field-label" style="margin-bottom:10px">Scholen</div>
+            <div id="settings-schools-list" style="margin-bottom:12px"></div>
+            <div class="input-group">
+              <input class="form-input" id="inp-new-school" placeholder="Naam van de school" style="border-right:none" onkeydown="if(event.key==='Enter')addSchool()" />
+              <button class="btn-attach" onclick="addSchool()">Toevoegen</button>
+            </div>
+          </div>
+          <!-- Klassen -->
+          <div>
+            <div class="field-label" style="margin-bottom:10px">Klassen</div>
+            <div id="settings-klassen-list" style="margin-bottom:12px"></div>
+            <div class="input-group">
+              <input class="form-input" id="inp-new-klas" placeholder="Bijv. Groep 7A" style="border-right:none" onkeydown="if(event.key==='Enter')addKlas()" />
+              <button class="btn-attach" onclick="addKlas()">Toevoegen</button>
             </div>
           </div>
         </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- VIEW: MY RAP -->
-  <div class="view" id="v-my-rap">
-    <div class="my-rap-wrap">
-      <div class="page-heading">
-        <div class="page-name" id="my-rap-title">Mijn rap</div>
-        <div class="page-desc" id="my-rap-date" style="margin-top:4px"></div>
-      </div>
-      <div class="my-rap-central" id="my-rap-central"></div>
-      <div class="my-rap-lines" id="my-rap-lines"></div>
-      <div class="my-rap-actions">
-        <button class="btn-primary" onclick="copyMyRap()">Kopieer rap</button>
-        <button class="btn-secondary" onclick="showView('v-app');goTo(3)">Terug naar bewerken</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- VIEW: TEACHER GALLERY -->
-  <div class="view" id="v-teacher-gallery">
-    <div class="gallery-wrap">
-      <div class="gallery-topbar">
-        <div>
-          <div class="page-name">Projecten</div>
-          <div class="page-desc" id="gallery-sub">Overzicht van alle raps</div>
+        <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border)">
+          <button class="btn-primary" onclick="saveSettings()">Instellingen opslaan</button>
+          <span id="settings-save-status" style="font-size:13px;color:var(--muted);margin-left:12px"></span>
         </div>
-        <button class="btn-secondary" onclick="loadGallery()">Vernieuwen</button>
       </div>
-      <div class="gallery-filters" id="gallery-filters">
-        <div class="filter-group">
-          <div class="filter-label">School</div>
-          <select class="filter-select" id="filter-school" onchange="applyFilters()">
+    </div>
+
+    <!-- VIEW: TEACHER GALLERY -->
+    <div class="view" id="v-teacher-gallery">
+      <div class="gallery-wrap">
+        <div class="gallery-topbar">
+          <div>
+            <div class="page-name">Projecten</div>
+            <div class="page-desc" id="gallery-sub">Overzicht van alle raps</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn-secondary" onclick="loadGallery()">Vernieuwen</button>
+            <div style="position:relative">
+              <button class="btn-secondary" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">Opties</button>
+              <div id="gallery-options-menu" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:var(--white);border:1px solid var(--border);z-index:200;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,.1)">
+                <button class="btn-link" style="display:block;width:100%;text-align:left;padding:10px 14px;border-bottom:1px solid var(--border)" onclick="exportAllRaps();document.getElementById('gallery-options-menu').style.display='none'">&#8595; Backup downloaden</button>
+                <label style="display:block;width:100%;text-align:left;padding:10px 14px;cursor:pointer;font-size:14px">&#8593; Backup importeren<input type="file" accept=".json" style="display:none" onchange="importBackup(this);document.getElementById('gallery-options-menu').style.display='none'"></label>
+              </div>
+            </div>
+            <span id="cloud-status" style="font-size:13px;cursor:default" title="Cloud backup status">&#9729;</span>
+          </div>
+        </div>
+        <div class="gallery-filters" id="gallery-filters">
+          <div class="filter-group">
+            <div class="filter-label">School</div>
+            <select class="filter-select" id="filter-school" onchange="applyFilters()">
             <option value="">Alle scholen</option>
           </select>
-        </div>
-        <div class="filter-group">
-          <div class="filter-label">Klas</div>
-          <select class="filter-select" id="filter-klas" onchange="applyFilters()">
+          </div>
+          <div class="filter-group">
+            <div class="filter-label">Klas</div>
+            <select class="filter-select" id="filter-klas" onchange="applyFilters()">
             <option value="">Alle klassen</option>
           </select>
+          </div>
+          <div class="filter-count" id="filter-count"></div>
         </div>
-        <div class="filter-count" id="filter-count"></div>
-      </div>
-      <div id="gallery-body">
-        <div class="gallery-loading">Laden...</div>
-      </div>
-    </div>
-  </div>
+        <div id="gallery-body">
+          <div class="gallery-loading">Laden...</div>
+        </div>
 
-  <!-- VIEW: TEACHER DETAIL -->
-  <div class="view" id="v-teacher-detail">
-    <div class="detail-wrap">
-      <div class="detail-topbar">
-        <button class="btn-nav-back" onclick="showView('v-teacher-gallery')">Terug naar overzicht</button>
-        <div style="text-align:right">
-          <div class="detail-name" id="detail-name"></div>
-          <div class="detail-meta" id="detail-meta"></div>
+        <!-- Naam opzoeken voor kind -->
+        <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+          <div class="field-label" style="margin-bottom:8px">Naam opzoeken voor kind</div>
+          <div class="input-group" style="max-width:400px">
+            <input class="form-input" id="inp-search" placeholder="Typ (een deel van) de naam..." style="border-right:none" oninput="searchName(this.value)" />
+            <button class="btn-attach off" id="btn-search-clear" onclick="document.getElementById('inp-search').value='';searchName('')">✕</button>
+          </div>
+          <div id="search-results" style="margin-top:8px;display:flex;flex-direction:column;gap:4px;max-width:400px"></div>
         </div>
       </div>
-      <div id="detail-content"></div>
-      <button class="btn-delete-entry" id="btn-detail-delete">Rap verwijderen</button>
     </div>
+
+    <!-- VIEW: TEACHER DETAIL -->
+    <div class="view" id="v-teacher-detail">
+      <div class="detail-wrap">
+        <div class="detail-topbar">
+          <button class="btn-nav-back" onclick="showView('v-teacher-gallery')">Terug naar overzicht</button>
+          <div style="text-align:right">
+            <div class="detail-name" id="detail-name"></div>
+            <div class="detail-meta" id="detail-meta"></div>
+          </div>
+        </div>
+        <div id="detail-content"></div>
+        <button class="btn-delete-entry" id="btn-detail-delete">Rap verwijderen</button>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="site-footer">Muziek met meester Luis &nbsp;&middot;&nbsp; 2026</div>
   </div>
 
-  <!-- FOOTER -->
-  <div class="site-footer">Muziek met meester Luis &nbsp;&middot;&nbsp; 2026</div>
-</div>
+  <div class="toast" id="toast"></div>
 
-<div class="toast" id="toast"></div>
+  <script>
 
-<script>
-// ══ CONFIG ══
+  const JSONBIN_API_KEY = '$2a$10$5y3xu2GNJ/RRzw48sOsnxezo.zAVnVs43hbXkr422KlitgRkYnKAC';
+  let _autoDownloadDone = false;
+
+    // ══ CONFIG ══
 const API      = 'https://muziekmeesterluis.nl/projects/api/index.php';
 const APP      = 'raplab';
 const TEACHER_PW = 'meesterluis';
+const AUTO_BACKUP_MS = 5 * 60 * 1000;
 
 // ══ STATE ══
 const S = {
@@ -1417,11 +2456,13 @@ const S = {
 };
 
 // ══ VIEW ROUTING ══
+let _backupTimer = null;
 function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   renderHeader();
   window.scrollTo(0, 0);
+  clearInterval(_backupTimer);
 }
 function goHome() {
   if (!S.studentName && !S.isTeacher) showView('v-welcome');
@@ -1458,9 +2499,10 @@ function renderHeader() {
     const n = document.createElement('div'); n.className = 'hdr-name'; n.textContent = S.studentName;
     right.appendChild(n);
     right.appendChild(mkHdrBtn('Terug naar bewerken', () => { showView('v-app'); goTo(3); }));
-  } else if (activeView === 'v-teacher-gallery') {
+  } else if (activeView === 'v-teacher-gallery' || activeView === 'v-teacher-settings') {
     const badge = document.createElement('div'); badge.className = 'hdr-teacher-badge'; badge.textContent = 'Docent';
     right.appendChild(badge);
+    right.appendChild(mkHdrBtn('Instellingen', () => { showView('v-teacher-settings'); loadSettings(); }));
     right.appendChild(mkHdrBtn('Uitloggen', () => { S.isTeacher = false; showView('v-welcome'); }));
   } else if (activeView === 'v-teacher-detail') {
     right.appendChild(mkHdrBtn('Terug', () => showView('v-teacher-gallery')));
@@ -1495,7 +2537,7 @@ function buildSteps() {
 }
 
 // ══ WELCOME ══
-['inp-name','inp-title','inp-school','inp-klas'].forEach(id => {
+['inp-name','inp-title'].forEach(id => {
   document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') startStudent(); });
 });
 
@@ -1505,26 +2547,42 @@ function makeKey(school, klas, naam) {
 }
 
 async function startStudent() {
-  const name   = document.getElementById('inp-name').value.trim();
-  const title  = document.getElementById('inp-title').value.trim();
-  const school = document.getElementById('inp-school').value.trim();
-  const klas   = document.getElementById('inp-klas').value.trim();
-  const errEl  = document.getElementById('reg-err');
+  const name  = document.getElementById('inp-name').value.trim();
+  const title = document.getElementById('inp-title').value.trim();
+  const errEl = document.getElementById('reg-err');
   if (!name) { errEl.style.display = 'block'; return; }
   errEl.style.display = 'none';
   S.studentName = name;
   S.rapTitle    = title || name + "'s rap";
-  S.school      = school || 'onbekend';
-  S.klas        = klas || '';
+  S.school      = '';
+  S.klas        = '';
   S.saveKey     = makeKey(S.school, S.klas, name);
   try {
     const res = await fetch(`${API}?action=list&app=${APP}`);
     const list = await res.json();
     if (Array.isArray(list)) {
-      const existing = list.find(r => r.id === S.saveKey);
-      if (existing && existing.central) {
+      const nameClean = name.toLowerCase().trim();
+      const matches = list.filter(r =>
+        (r.studentName || '').toLowerCase().trim() === nameClean && r.central
+      );
+      if (matches.length === 1) {
+        // Gebruik de opgeslagen school/klas van de bestaande rap
+        const existing = matches[0];
+        S.school  = existing.school || S.school;
+        S.klas    = existing.klas   || S.klas;
+        S.saveKey = existing.id     || S.saveKey;
         const notice = document.getElementById('load-notice');
         notice.style.display = 'block'; notice._data = existing; return;
+      } else if (matches.length > 1) {
+        // Meerdere raps met dezelfde naam — gebruik school+klas om te kiezen
+        const exact = matches.find(r => r.id === S.saveKey);
+        if (exact) {
+          const notice = document.getElementById('load-notice');
+          notice.style.display = 'block'; notice._data = exact; return;
+        }
+        // Toon de eerste match als fallback
+        const notice = document.getElementById('load-notice');
+        notice.style.display = 'block'; notice._data = matches[0]; return;
       }
     }
   } catch(e) {}
@@ -1573,7 +2631,11 @@ async function autoSave() {
       body: JSON.stringify(buildPayload(savedAt)),
     });
     const data = await res.json();
-    if (data.ok) { S.savedAt = savedAt; setAutoSaveDot('saved'); setTimeout(()=>setAutoSaveDot(''), 3000); }
+    if (data.ok) {
+      S.savedAt = savedAt;
+      setAutoSaveDot('saved');
+      setTimeout(()=>setAutoSaveDot(''), 3000);
+    }
     else setAutoSaveDot('err');
   } catch(e) { setAutoSaveDot('err'); }
 }
@@ -1586,6 +2648,28 @@ function buildPayload(savedAt) {
   };
 }
 
+// ══ NAAM ZOEKEN ══
+function searchName(query) {
+  const el = document.getElementById('search-results');
+  if (!el) return;
+  const q = query.trim().toLowerCase();
+  if (!q) { el.innerHTML = ''; return; }
+
+  const results = (S.teacherAllRaps || [])
+    .filter(r => (r.studentName||'').toLowerCase().includes(q))
+    .slice(0, 8);
+
+  if (!results.length) { el.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:4px 0">Geen resultaten</div>'; return; }
+
+  el.innerHTML = '';
+  results.forEach(r => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--white);border:1px solid var(--border);font-size:14px';
+    row.innerHTML = `<strong>${r.studentName}</strong><span style="font-size:12px;color:var(--muted)">${r.school||''} · ${r.klas||''}</span>`;
+    el.appendChild(row);
+  });
+}
+
 // ══ TEACHER LOGIN ══
 document.getElementById('inp-teacher-pw').addEventListener('keydown', e => { if(e.key==='Enter') teacherLogin(); });
 async function teacherLogin() {
@@ -1594,7 +2678,101 @@ async function teacherLogin() {
   errEl.style.display = 'none';
   if (pw !== TEACHER_PW) { errEl.style.display = 'block'; return; }
   S.isTeacher = true;
-  showView('v-teacher-gallery'); loadGallery();
+  showView('v-teacher-gallery');
+  loadGallery();
+}
+
+// ══ SETTINGS ══
+const SETTINGS_ID = '__raplab_settings__';
+let _settings = { schools: [], klassen: [] };
+
+async function loadSettings() {
+  try {
+    const res = await fetch(`${API}?action=list&app=raplab_settings`);
+    const list = await res.json();
+    const rec = Array.isArray(list) ? list.find(r => r.id === SETTINGS_ID) : null;
+    if (rec) { _settings = { schools: rec.schools || [], klassen: rec.klassen || [] }; }
+  } catch(e) {}
+  renderSettingsUI();
+  populateWelcomeDropdowns();
+}
+
+function renderSettingsUI() {
+  renderSettingsList('settings-schools-list', _settings.schools, i => {
+    _settings.schools.splice(i, 1); renderSettingsUI();
+  });
+  renderSettingsList('settings-klassen-list', _settings.klassen, i => {
+    _settings.klassen.splice(i, 1); renderSettingsUI();
+  });
+}
+
+function renderSettingsList(elId, items, onDelete) {
+  const el = document.getElementById(elId); if (!el) return;
+  el.innerHTML = '';
+  if (!items.length) { el.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0">Nog niets toegevoegd</div>'; return; }
+  items.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;border:1px solid var(--border);margin-bottom:4px;background:var(--white)';
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'flex:1;padding:7px 12px;font-size:14px';
+    lbl.textContent = item;
+    const del = document.createElement('button');
+    del.className = 'we-del'; del.textContent = '×'; del.title = 'Verwijderen';
+    del.addEventListener('click', () => onDelete(i));
+    row.appendChild(lbl); row.appendChild(del); el.appendChild(row);
+  });
+}
+
+function addSchool() {
+  const inp = document.getElementById('inp-new-school');
+  const v = inp.value.trim(); if (!v) return;
+  if (!_settings.schools.includes(v)) _settings.schools.push(v);
+  inp.value = ''; renderSettingsUI();
+}
+
+function addKlas() {
+  const inp = document.getElementById('inp-new-klas');
+  const v = inp.value.trim(); if (!v) return;
+  if (!_settings.klassen.includes(v)) _settings.klassen.push(v);
+  inp.value = ''; renderSettingsUI();
+}
+
+async function saveSettings() {
+  const statusEl = document.getElementById('settings-save-status');
+  statusEl.textContent = 'Opslaan...';
+  try {
+    const res = await fetch(`${API}?action=save&app=raplab_settings`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ id: SETTINGS_ID, schools: _settings.schools, klassen: _settings.klassen }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      statusEl.textContent = 'Opgeslagen ✓';
+      setTimeout(() => statusEl.textContent = '', 3000);
+      populateWelcomeDropdowns();
+    } else { statusEl.textContent = 'Opslaan mislukt'; }
+  } catch(e) { statusEl.textContent = 'Server niet bereikbaar'; }
+}
+
+function populateWelcomeDropdowns() {
+  const sEl = document.getElementById('inp-school');
+  const kEl = document.getElementById('inp-klas');
+  if (!sEl || !kEl) return;
+  const prevSchool = sEl.value, prevKlas = kEl.value;
+
+  if (_settings.schools.length) {
+    sEl.innerHTML = '<option value="">— Kies je school —</option>' +
+      _settings.schools.map(s => `<option value="${s}"${s===prevSchool?' selected':''}>${s}</option>`).join('');
+  } else {
+    sEl.innerHTML = '<option value="">— geen scholen ingesteld —</option>';
+  }
+
+  if (_settings.klassen.length) {
+    kEl.innerHTML = '<option value="">— Kies je klas —</option>' +
+      _settings.klassen.map(k => `<option value="${k}"${k===prevKlas?' selected':''}>${k}</option>`).join('');
+  } else {
+    kEl.innerHTML = '<option value="">— geen klassen ingesteld —</option>';
+  }
 }
 
 // ══ NAVIGATION ══
@@ -1604,6 +2782,7 @@ function goTo(n) {
   S.step = n;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page'+n).classList.add('active');
+  window.scrollTo(0, 0);
   renderHeader();
   if (n === 2) { syncRhymes(); renderRhymeList(); drawSpin2(); }
   if (n === 3) { renderLines(); drawSpin3(); autoSave(); }
@@ -1653,6 +2832,13 @@ function removeWord(i) {
 
 function renderWordList() {
   document.getElementById('w1count').textContent = S.words.length;
+  const full = S.words.length >= 8;
+  const wi = document.getElementById('w1inp');
+  const ai = document.getElementById('a1inp');
+  const btn = document.getElementById('w1addbtn');
+  if (wi) { wi.disabled = full; wi.placeholder = full ? '8/8 — verwijder een woord om te wijzigen' : 'woord'; }
+  if (ai) { ai.disabled = full; ai.placeholder = full ? '' : 'associatie'; }
+  if (btn) { btn.disabled = full; btn.classList.toggle('off', full); }
   const cont = document.getElementById('word-entries'); cont.innerHTML = '';
   S.words.forEach((item, i) => {
     const row = document.createElement('div'); row.className = 'word-entry';
@@ -1664,84 +2850,142 @@ function renderWordList() {
 }
 function upd1() { const el = document.getElementById('btn-to2'); if (el) el.classList.toggle('on', ok1()); renderHeader(); }
 
-// ══ STAP 2 ══
+// ══ STAP 3: ZINNEN SCHRIJVEN ══
+const HINTS = ['Waar?', 'Wanneer?', 'Hoe?', 'Met wie?', 'Wat gebeurt er daarna?'];
+
+
+// ══ STAP 2: RIJMWOORDEN ══
 function syncRhymes() {
   while (S.rhymes.length < S.words.length) S.rhymes.push({wordRhyme:'', assocRhyme:''});
   S.rhymes.length = S.words.length;
 }
+
 function renderRhymeList() {
   const el = document.getElementById('rhyme-list'); el.innerHTML = '';
+
+  const heading = document.createElement('div'); heading.className = 'page-heading';
+  heading.innerHTML = '<div class="page-name">Rijmwoorden</div><div class="page-desc">Zoek voor elk woord uit je woordspin een rijmwoord.</div>';
+  el.appendChild(heading);
+
   const wrap = document.createElement('div'); wrap.className = 'rhyme-cards';
 
   S.words.forEach((item, i) => {
     const card = document.createElement('div'); card.className = 'rhyme-card';
     const body = document.createElement('div'); body.className = 'rc-body';
 
-    const makeRow = (targetWord, val, onCh) => {
-      const wrap = document.createElement('div');
-      const row = document.createElement('div'); row.className = 'rc-row';
-      const lbl = document.createElement('span'); lbl.className = 'rc-label'; lbl.textContent = `Rijmt op "${targetWord}":`;
+    const makeCell = (targetWord, tag, isAssoc, val, onCh) => {
+      const cell = document.createElement('div');
+      cell.className = 'rc-cell' + (isAssoc ? ' assoc' : '');
+
+      // header: tag + woord
+      const target = document.createElement('div'); target.className = 'rc-target';
+      const tagEl = document.createElement('span'); tagEl.className = 'rc-tag'; tagEl.textContent = tag;
+      const wordEl = document.createElement('span'); wordEl.className = 'rc-word-big'; wordEl.textContent = targetWord;
+      target.appendChild(tagEl); target.appendChild(wordEl);
+      cell.appendChild(target);
+
+      // input + check
+      const inWrap = document.createElement('div'); inWrap.className = 'rc-input-wrap';
       const inp = document.createElement('input'); inp.className = 'rc-inp' + (val ? ' filled' : ''); inp.value = val;
-      inp.style.fontFamily = 'var(--mono)';
+      inp.placeholder = 'typ een rijmwoord...';
+      const chk = document.createElement('span'); chk.className = 'rc-check' + (val ? ' filled' : ''); chk.textContent = 'v';
       inp.addEventListener('input', e => {
         const v = e.target.value.trim(); onCh(v);
         inp.classList.toggle('filled', v.length > 0);
         chk.classList.toggle('filled', v.length > 0);
       });
-      const chk = document.createElement('span'); chk.className = 'rc-check' + (val ? ' filled' : ''); chk.textContent = 'v';
-      row.appendChild(lbl); row.appendChild(inp); row.appendChild(chk);
+      inWrap.appendChild(inp); inWrap.appendChild(chk);
+      cell.appendChild(inWrap);
 
-      const sugBtn = document.createElement('button'); sugBtn.className = 'rc-sug-btn'; sugBtn.textContent = 'Rijmsuggesties';
+      // suggestieknop + chips
+      const sugBtn = document.createElement('button'); sugBtn.className = 'rc-sug-btn'; sugBtn.textContent = 'Toon rijmsuggesties';
       const chips = document.createElement('div'); chips.className = 'rc-chips';
-      let loaded = false;
+      const empty = document.createElement('div'); empty.className = 'rc-chips-empty';
+      let loaded = false, loading = false;
 
       sugBtn.addEventListener('click', async () => {
-        const open = chips.classList.toggle('show');
-        if (open && !loaded) {
-          loaded = true; sugBtn.textContent = 'Laden...';
+        if (loading) return;
+        const isOpen = chips.classList.contains('show') || empty.classList.contains('show');
+        if (isOpen) {
+          chips.classList.remove('show'); empty.classList.remove('show');
+          sugBtn.classList.remove('open'); sugBtn.textContent = 'Toon rijmsuggesties';
+          return;
+        }
+        if (!loaded) {
+          loading = true; sugBtn.textContent = 'Laden...';
           const words = await fetchRhymes(targetWord);
-          sugBtn.textContent = 'Rijmsuggesties';
-          chips.innerHTML = '';
-          if (!words.length) { chips.classList.remove('show'); loaded = false; }
-          else {
-            words.forEach(w => {
-              const chip = document.createElement('button'); chip.className = 'rc-chip'; chip.textContent = w;
-              chip.addEventListener('click', () => {
-                inp.value = w; onCh(w); inp.classList.add('filled'); chk.classList.add('filled');
-                chips.querySelectorAll('.rc-chip').forEach(c => c.classList.remove('selected'));
-                chip.classList.add('selected'); upd2(); drawSpin2(); scheduleAutoSave();
-              });
-              chips.appendChild(chip);
-            });
+          loading = false;
+          sugBtn.classList.add('open');
+          if (!words.length) {
+            sugBtn.textContent = 'Verberg suggesties';
+            empty.textContent = 'geen rijmwoorden gevonden — probeer het opnieuw';
+            empty.classList.add('show');
+            return; // niet loaded markeren zodat retry werkt
           }
+          loaded = true;
+          sugBtn.textContent = 'Verberg suggesties';
+          chips.innerHTML = '';
+          words.forEach(w => {
+            const chip = document.createElement('button'); chip.className = 'rc-chip'; chip.textContent = w;
+            chip.addEventListener('click', () => {
+              inp.value = w; onCh(w); inp.classList.add('filled'); chk.classList.add('filled');
+              chips.querySelectorAll('.rc-chip').forEach(c => c.classList.remove('selected'));
+              chip.classList.add('selected'); upd2(); drawSpin2(); scheduleAutoSave();
+            });
+            chips.appendChild(chip);
+          });
+          chips.classList.add('show');
+        } else {
+          // al geladen, alleen weer tonen
+          chips.classList.add('show');
+          sugBtn.classList.add('open');
+          sugBtn.textContent = 'Verberg suggesties';
         }
       });
 
-      wrap.appendChild(row); wrap.appendChild(sugBtn); wrap.appendChild(chips);
-      return wrap;
+      cell.appendChild(sugBtn); cell.appendChild(chips); cell.appendChild(empty);
+      return cell;
     };
 
-    body.appendChild(makeRow(item.word, S.rhymes[i].wordRhyme,
+    body.appendChild(makeCell(item.word,  'Woord',       false, S.rhymes[i].wordRhyme,
       v => { S.rhymes[i].wordRhyme = v; upd2(); drawSpin2(); scheduleAutoSave(); }));
-    body.appendChild(makeRow(item.assoc, S.rhymes[i].assocRhyme,
+    body.appendChild(makeCell(item.assoc, 'Associatie',  true,  S.rhymes[i].assocRhyme,
       v => { S.rhymes[i].assocRhyme = v; upd2(); drawSpin2(); scheduleAutoSave(); }));
 
     card.appendChild(body); wrap.appendChild(card);
   });
   el.appendChild(wrap);
+
+  const nav = document.createElement('div'); nav.className = 'nav-row';
+  const back = document.createElement('button'); back.className = 'btn-nav-back'; back.textContent = 'Terug';
+  back.addEventListener('click', () => goTo(1));
+  const next = document.createElement('button'); next.className = 'btn-nav-next on'; next.id = 'btn-to3';
+  next.textContent = 'Volgende: Schrijven';
+  next.addEventListener('click', () => goTo(3));
+  nav.appendChild(back); nav.appendChild(next);
+  el.appendChild(nav);
 }
 
-async function fetchRhymes(word) {
+async function fetchRhymes(word, attempt = 1) {
   const w = word.toLowerCase().trim(); if (!w) return [];
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
     const res = await fetch('https://muziekmeesterluis.nl/projects/rhymes.php', {
-      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({word: w}),
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({word: w}), signal: controller.signal,
     });
+    clearTimeout(timeout);
     const rawText = await res.text();
-    let data; try { data = JSON.parse(rawText); } catch(e) { return []; }
+    let data; try { data = JSON.parse(rawText); } catch(e) { return attempt < 3 ? fetchRhymes(word, attempt + 1) : []; }
     if (data.error) return [];
-    return Array.isArray(data.words) ? data.words.filter(r => r !== w).slice(0, 10) : [];
-  } catch(e) { return []; }
+    const results = Array.isArray(data.words) ? data.words.filter(r => r !== w).slice(0, 10) : [];
+    if (!results.length && attempt < 3) return fetchRhymes(word, attempt + 1);
+    return results;
+  } catch(e) {
+    if (attempt < 3) return fetchRhymes(word, attempt + 1);
+    return [];
+  }
 }
 function upd2() {
   const el = document.getElementById('btn-to3'); if (el) el.classList.toggle('on', ok1());
@@ -1756,8 +3000,14 @@ function getPos(count, r, cx, cy) {
 }
 function initCV(cid, wid, size) {
   const wrap = document.getElementById(wid); wrap.style.width = size+'px'; wrap.style.height = size+'px';
-  const cv = document.getElementById(cid); cv.width = size; cv.height = size;
-  const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, size, size);
+  const cv = document.getElementById(cid);
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = size * dpr; cv.height = size * dpr;
+  cv.style.width = size+'px'; cv.style.height = size+'px';
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, size, size);
+  ctx.lineCap = 'round';
   return {wrap, ctx};
 }
 function ln(ctx, x1, y1, x2, y2, col, w, dash=[]) {
@@ -1809,13 +3059,18 @@ function openSpinEdit(wrap, x, y, fields, onSave, onDelete) {
 
 // ══ SPIN 1 ══
 function drawSpin1() {
-  const sz = 900; const {wrap, ctx} = initCV('spin1-cv', 'spin1-wrap', sz); clrNodes(wrap);
+  // Responsief: kleinere spin op Chromebook-formaat schermen
+  const narrow = window.innerWidth < 1400;
+  const sz = narrow ? 680 : 800;
+  const rW = narrow ? 160 : 180;
+  const rA = narrow ? 280 : 320;
+  const {wrap, ctx} = initCV('spin1-cv', 'spin1-wrap', sz); clrNodes(wrap);
+  wrap.classList.toggle('narrow', narrow);
   const cx = sz/2, cy = sz/2, n = S.words.length;
-  const rW = 210, rA = 370;
   const wP = getPos(n, rW, cx, cy), aP = getPos(n, rA, cx, cy);
-  wP.forEach(p => ln(ctx, cx, cy, p.x, p.y, '#ccc', 1));
+  wP.forEach(p => ln(ctx, cx, cy, p.x, p.y, '#888', 2));
   S.words.forEach((_, i) => {
-    if (S.words[i].assoc) ln(ctx, wP[i].x, wP[i].y, aP[i].x, aP[i].y, '#ddd', 1, [3,4]);
+    if (S.words[i].assoc) ln(ctx, wP[i].x, wP[i].y, aP[i].x, aP[i].y, '#999', 1.5, [4,4]);
   });
   const cNode = plCenter(wrap, S.central || '', cx, cy);
   cNode.title = 'Dubbelklik om te wijzigen';
@@ -1846,6 +3101,19 @@ function drawSpin1() {
   });
 }
 function trunc(s, max) { return s && s.length > max ? s.slice(0, max)+'...' : s || ''; }
+
+// Herrteken spin1 als het venster smal/breed-grens passeert
+let _spin1ResizeT = null, _spin1WasNarrow = window.innerWidth < 1400;
+window.addEventListener('resize', () => {
+  clearTimeout(_spin1ResizeT);
+  _spin1ResizeT = setTimeout(() => {
+    const nowNarrow = window.innerWidth < 1400;
+    if (nowNarrow !== _spin1WasNarrow) {
+      _spin1WasNarrow = nowNarrow;
+      if (document.getElementById('page1')?.classList.contains('active')) drawSpin1();
+    }
+  }, 150);
+});
 
 // ══ SPIN 2 ══
 function drawSpin2() {
@@ -1899,8 +3167,20 @@ function renderLines() {
     row.addEventListener('click', () => { if (S.activeLine !== i) { S.activeLine = i; renderLines(); } row.querySelector('.line-input')?.focus(); });
     const num = document.createElement('div'); num.className = 'line-num'; num.textContent = String(i+1).padStart(2,'0');
     const inp = document.createElement('span'); inp.className = 'line-input'; inp.contentEditable = 'true'; inp.textContent = line.text;
+
+    // Word counter
+    const counter = document.createElement('div'); counter.className = 'line-word-count';
+    function updateWordCount() {
+      const words = (inp.textContent || '').trim().split(/\s+/).filter(Boolean).length;
+      counter.textContent = words + ' w';
+      counter.classList.toggle('ok', words >= 6);
+      counter.classList.toggle('short', words > 0 && words < 6);
+      counter.style.display = inp.textContent.trim() ? 'block' : 'none';
+    }
+    updateWordCount();
+
     inp.addEventListener('focus', () => { if (S.activeLine !== i) { S.activeLine = i; renderLines(); } });
-    inp.addEventListener('input', () => { S.rapLines[i].text = inp.textContent; scheduleAutoSave(); });
+    inp.addEventListener('input', () => { S.rapLines[i].text = inp.textContent; updateWordCount(); scheduleAutoSave(); });
     inp.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -1917,12 +3197,12 @@ function renderLines() {
       ew.addEventListener('click', e => { e.stopPropagation(); removeEnd(i); });
       row.appendChild(ew);
     }
+    row.appendChild(counter);
     cont.appendChild(row);
   });
   const done = S.rapLines.filter(l => l.endWord).length;
   document.getElementById('rap-done').textContent = done;
   document.getElementById('progress-fill').style.width = `${(done/8)*100}%`;
-  document.getElementById('btn-copy').style.display = done === 8 ? 'block' : 'none';
   drawSpin3();
 }
 function clickWord(word) {
@@ -1932,35 +3212,86 @@ function clickWord(word) {
 }
 function removeEnd(i) { S.rapLines[i].endWord = null; renderLines(); scheduleAutoSave(); }
 
-function copyRap() {
-  const text = S.rapLines.map(l => ((l.text?l.text+(l.endWord?' ':''): '')+(l.endWord||'')).trim()).filter(Boolean).join('\n');
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById('btn-copy'); btn.textContent = 'Gekopieerd'; btn.classList.add('done');
-    setTimeout(() => { btn.textContent = 'Kopieer rap'; btn.classList.remove('done'); }, 2000);
+function printRap() {
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const lines = S.rapLines.map((l, i) => {
+    const text = ((l.text ? l.text + (l.endWord ? ' ' : '') : '') + (l.endWord || '')).trim();
+    return { num: i + 1, text };
   });
+  const title = S.rapTitle || (S.studentName ? `Rap van ${S.studentName}` : 'Mijn rap');
+  const meta = [S.studentName, S.klas, S.school].filter(Boolean).join(' \u00b7 ');
+  const date = new Date().toLocaleDateString('nl-NL', { day:'numeric', month:'long', year:'numeric' });
+  const central = S.central || '';
+
+  const html = `<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>${esc(title)}</title>
+<style>
+  @page { margin: 2cm; size: A4; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Courier New', Courier, monospace; color: #1a1a1a; margin: 0; padding: 24px; line-height: 1.5; background: #fafafa; }
+  .actions { max-width: 800px; margin: 0 auto 16px; text-align: center; }
+  .actions button { padding: 10px 20px; font-family: inherit; font-size: 14px; cursor: pointer; background: #1a1a1a; color: #fff; border: 0; margin: 0 4px; font-weight: 700; }
+  .actions button.secondary { background: #fff; color: #1a1a1a; border: 1px solid #1a1a1a; }
+  .sheet { background: #fff; max-width: 800px; margin: 0 auto; padding: 40px 48px; border: 1px solid #ddd; }
+  .header { border-bottom: 2px solid #1a1a1a; padding-bottom: 18px; margin-bottom: 28px; }
+  .title { font-size: 30px; font-weight: 700; margin: 0 0 6px; letter-spacing: 0.01em; word-wrap: break-word; }
+  .subject { font-size: 15px; color: #1a1a1a; }
+  .subject .label { color: #666; }
+  .meta { font-size: 11px; color: #666; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .lines { margin-top: 18px; }
+  .line { display: flex; gap: 16px; padding: 13px 0; border-bottom: 1px dashed #ccc; align-items: baseline; page-break-inside: avoid; }
+  .num { font-size: 13px; font-weight: 700; color: #999; width: 30px; flex-shrink: 0; }
+  .text { font-size: 17px; flex: 1; min-height: 22px; word-wrap: break-word; }
+  .text.empty { color: #ccc; letter-spacing: 0.05em; }
+  .footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid #eee; font-size: 11px; color: #999; text-align: center; }
+  @media print {
+    body { padding: 0; background: #fff; }
+    .actions { display: none; }
+    .sheet { border: 0; max-width: none; padding: 0; }
+  }
+</style>
+</head>
+<body>
+  <div class="actions">
+    <button onclick="window.print()">Print / Opslaan als PDF</button>
+    <button class="secondary" onclick="window.close()">Sluiten</button>
+  </div>
+  <div class="sheet">
+    <div class="header">
+      <h1 class="title">${esc(title)}</h1>
+      ${central ? `<div class="subject"><span class="label">Over: </span>${esc(central)}</div>` : ''}
+      <div class="meta">${meta ? esc(meta) + ' \u00b7 ' : ''}${esc(date)}</div>
+    </div>
+    <div class="lines">
+      ${lines.map(l => `<div class="line"><div class="num">${l.num}.</div><div class="text${l.text ? '' : ' empty'}">${l.text ? esc(l.text) : '\u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7 \u00b7'}</div></div>`).join('')}
+    </div>
+    <div class="footer">muziekmeesterluis.nl</div>
+  </div>
+  <script>
+    window.addEventListener('load', function() { setTimeout(function() { window.print(); }, 400); });
+  <\/script>
+</body>
+</html>`;
+
+  const w = window.open('', '_blank');
+  if (!w) { showToast('Pop-up geblokkeerd — sta pop-ups toe om te printen.'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
 }
 
 // ══ SAVE / LOAD ══
-async function saveRap() {
-  const savedAt = new Date().toISOString();
-  try {
-    const res = await fetch(`${API}?action=save&app=${APP}`, {
-      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(buildPayload(savedAt)),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      S.savedAt = savedAt; renderHeader();
-      document.getElementById('btn-view-my-rap').style.display = 'inline-block';
-      showToast('Rap opgeslagen');
-    } else showToast('Opslaan mislukt');
-  } catch(e) { showToast('Server niet bereikbaar'); }
-}
 function loadStateFromData(data) {
   S.central  = data.central  || '';
   S.words    = data.words    || [];
   S.rhymes   = data.rhymes   || [];
   S.rapLines = data.rapLines || Array.from({length:8},()=>({text:'',endWord:null}));
-  S.step     = data.step     || 1;
+  // Stap migratie: max stap is nu 4
+  let savedStep = Math.min(data.step || 1, 4);
+  S.step     = savedStep;
   S.savedAt  = data.savedAt  || null;
   S.rapTitle = data.rapTitle || S.rapTitle;
   S.school   = data.school   || S.school;
@@ -1982,7 +3313,6 @@ function loadStateFromData(data) {
     document.getElementById('word-section-list').style.display = 'block';
     renderWordList(); drawSpin1(); upd1();
   }
-  if (S.savedAt) document.getElementById('btn-view-my-rap').style.display = 'inline-block';
 }
 function fmtDate(iso) {
   try { return new Date(iso).toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'}); } catch(e) { return iso; }
@@ -2030,6 +3360,22 @@ async function loadGallery() {
     });
     enriched.sort((a,b) => a.school.localeCompare(b.school) || a.klas.localeCompare(b.klas) || b.savedAt.localeCompare(a.savedAt));
     S.teacherAllRaps = enriched;
+
+    // Lees lokale backup VOOR we hem overschrijven, voor de vergelijking
+    let prevLocalCount = 0;
+    try {
+      const localRaw = localStorage.getItem(BACKUP_LS_KEY);
+      if (localRaw) prevLocalCount = JSON.parse(localRaw)?.raps?.length || 0;
+    } catch(_e) {}
+
+    autoBackupToLocalStorage(list);
+    // Auto-download eenmalig per sessie als extra vangnet
+    if (!_autoDownloadDone && list.length > 0) {
+      _autoDownloadDone = true;
+      autoDownloadBackup(list);
+    }
+    setCloudStatus('busy', 'Backup versturen...');
+    mirrorToJSONBin(list, prevLocalCount);
     const schools = [...new Set(enriched.map(r=>r.school))].sort();
     const klassen = [...new Set(enriched.map(r=>r.klas))].sort();
     const fSchool = document.getElementById('filter-school');
@@ -2038,7 +3384,22 @@ async function loadGallery() {
     fKlas.innerHTML   = '<option value="">Alle klassen</option>' + klassen.map(k=>`<option>${k}</option>`).join('');
     document.getElementById('gallery-filters').style.display = enriched.length ? 'flex' : 'none';
     applyFilters();
-  } catch(e) { document.getElementById('gallery-body').innerHTML=`<div class="gallery-empty">Server niet bereikbaar: ${e.message}</div>`; }
+  } catch(e) {
+    let msg = `<div class="gallery-empty">Server niet bereikbaar: ${e.message}</div>`;
+    // check local backup
+    try {
+      const local = localStorage.getItem(BACKUP_LS_KEY);
+      if (local) {
+        const b = JSON.parse(local);
+        const datum = b.date ? fmtDate(b.date) : '?';
+        msg += `<div class="gallery-empty" style="margin-top:12px">
+          <strong>Lokale backup gevonden</strong> (${datum}, ${b.raps?.length||0} raps)<br>
+          <button class="btn-secondary" style="margin-top:8px" onclick="restoreFromLocalBackup()">Lokale backup laden</button>
+        </div>`;
+      }
+    } catch(e2) {}
+    document.getElementById('gallery-body').innerHTML = msg;
+  }
 }
 function applyFilters() {
   const school = document.getElementById('filter-school').value;
@@ -2212,7 +3573,233 @@ async function deleteRapFromDetail(id) {
   } catch(e) { showToast('Server niet bereikbaar'); }
 }
 
-// ══ TOAST ══
+function restoreFromLocalBackup() {
+  try {
+    const local = localStorage.getItem(BACKUP_LS_KEY);
+    if (!local) { showToast('Geen lokale backup gevonden'); return; }
+    const b = JSON.parse(local);
+    const raps = b.raps || [];
+    const enriched = raps.map(s => {
+      const lines = s.rapLines || [];
+      return {
+        studentName: s.studentName||'?', rapTitle: s.rapTitle||'',
+        school: s.school||'?', klas: s.klas||'?',
+        savedAt: s.savedAt||'', central: s.central||'',
+        linesDone: lines.filter(l=>l.endWord).length, _id: s.id, _data: s,
+      };
+    });
+    S.teacherAllRaps = enriched;
+    applyFilters();
+    showToast(`${enriched.length} raps geladen uit lokale backup`);
+  } catch(e) { showToast('Backup laden mislukt'); }
+}
+
+
+const BACKUP_LS_KEY = 'raplab_backup';
+
+// Sla automatisch een lokale backup op in de browser elke keer dat de gallery geladen wordt
+function setCloudStatus(state, detail, label) {
+  const el = document.getElementById('cloud-status');
+  if (!el) return;
+  el.title = detail || '';
+  const colors = { ok: '#2a7a2a', err: '#c00', busy: '#e09900', off: '#999' };
+  el.style.color = colors[state] || '#999';
+  el.textContent = '☁' + (label ? ' ' + label : '');
+}
+
+async function getOrCreateJSONBinId(raps) {
+  if (!JSONBIN_API_KEY) { setCloudStatus('off', 'Geen API key ingesteld'); return null; }
+  let binId = localStorage.getItem('raplab_jsonbin_id');
+  if (!binId) {
+    setCloudStatus('busy', 'Cloud-backup aanmaken...');
+    try {
+      const res = await fetch('https://api.jsonbin.io/v3/b', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY, 'X-Bin-Name': 'raplab-backup', 'X-Bin-Private': 'true' },
+        body: JSON.stringify({ date: new Date().toISOString(), raps: [] }),
+      });
+      if (res.status === 403) {
+        setCloudStatus('err', 'API key ongeldig of verlopen');
+        showToast('Cloud-backup: API key ongeldig. Ga naar jsonbin.io en haal een nieuwe Master Key op, en zet die in de code bij JSONBIN_API_KEY.');
+        return null;
+      }
+      const json = await res.json();
+      if (!res.ok) { setCloudStatus('err', 'Aanmaken mislukt: ' + (json.message || res.status)); return null; }
+      binId = json.metadata?.id;
+      if (!binId) { setCloudStatus('err', 'Geen Bin ID ontvangen'); return null; }
+      localStorage.setItem('raplab_jsonbin_id', binId);
+      showToast('Cloud-backup aangemaakt');
+    } catch(e) { setCloudStatus('err', e.message); return null; }
+  }
+  return binId;
+}
+
+async function mirrorToJSONBin(raps, prevLocalCount = 0) {
+  if (!JSONBIN_API_KEY) return;
+  if (!Array.isArray(raps) || raps.length === 0) {
+    setCloudStatus('err', 'Schrijven geweigerd: lege lijst');
+    showToast('Cloud-backup NIET bijgewerkt: server stuurde 0 raps terug');
+    return;
+  }
+
+  // Veiligheidscheck 1: vergelijk met lokale backup
+  if (prevLocalCount > 0 && raps.length < prevLocalCount * 0.8) {
+    setCloudStatus('err',
+      `Geblokkeerd: server heeft ${raps.length} raps, backup had ${prevLocalCount}. Cloud niet overschreven.`);
+    showToast(`Let op: server geeft ${raps.length} raps, backup had ${prevLocalCount}. Cloud NIET bijgewerkt. Controleer server.`);
+    return;
+  }
+
+  const binId = await getOrCreateJSONBinId(raps);
+  if (!binId) return;
+
+  // Veiligheidscheck 2: lees cloud-telling — blokkeer ALLEEN als lezen lukt én cloud meer heeft
+  try {
+    const check = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_API_KEY }
+    });
+    if (check.status === 403) {
+      // Bin ID of API key klopt niet — wis bin ID zodat bij volgende load opnieuw geprobeerd wordt
+      localStorage.removeItem('raplab_jsonbin_id');
+      setCloudStatus('err', 'API key ongeldig of verlopen — zie toast');
+      showToast('Cloud-backup: API key ongeldig. Haal een nieuwe Master Key op via jsonbin.io en zet die in de code bij JSONBIN_API_KEY.');
+      return;
+    }
+    if (check.ok) {
+      const existing = await check.json();
+      const cloudCount = existing?.record?.raps?.length || 0;
+      if (cloudCount > raps.length) {
+        setCloudStatus('err',
+          `Geblokkeerd: server heeft ${raps.length} raps, cloud heeft ${cloudCount}. Gebruik "Herstel van cloud" als raps ontbreken.`);
+        showToast(`Let op: cloud heeft ${cloudCount} raps, server ${raps.length}. Cloud NIET overschreven.`);
+        return;
+      }
+    }
+    // Andere fout of lege cloud → gewoon doorgaan
+  } catch(_e) {
+    // Netwerk fout bij lezen → schrijf toch
+  }
+
+  // Schrijf naar cloud — alleen essentiële velden (geen drumPattern, id, saveKey, step)
+  const slim = raps.map(r => ({
+    studentName: r.studentName || '',
+    school:      r.school      || '',
+    klas:        r.klas        || '',
+    rapTitle:    r.rapTitle    || '',
+    savedAt:     r.savedAt     || '',
+    central:     r.central     || '',
+    words:       r.words       || [],
+    rhymes:      r.rhymes      || [],
+    rapLines:    (r.rapLines   || []).map(l => ({ text: l.text || '', endWord: l.endWord || null })),
+  }));
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY },
+      body: JSON.stringify({ date: new Date().toISOString(), raps: slim }),
+    });
+    if (res.status === 403) {
+      setCloudStatus('err', 'API key ongeldig of verlopen');
+      showToast('Cloud-backup: API key ongeldig. Haal een nieuwe Master Key op via jsonbin.io en zet die in de code bij JSONBIN_API_KEY.');
+      return;
+    }
+    if (res.ok) {
+      const kb = Math.round(JSON.stringify(slim).length / 1024);
+      setCloudStatus('ok', `${raps.length} raps · ${kb}kb · ${new Date().toLocaleTimeString()}`, `${kb}kb`);
+    }
+    else { const j = await res.json().catch(()=>({})); setCloudStatus('err', j.message || res.status); }
+  } catch(e) { setCloudStatus('err', e.message); }
+}
+
+async function restoreFromJSONBin() {
+  if (!JSONBIN_API_KEY) { showToast('JSONBIN_API_KEY niet ingesteld'); return; }
+  const binId = localStorage.getItem('raplab_jsonbin_id');
+  if (!binId) { showToast('Nog geen cloud-backup — open eerst de gallery terwijl de server bereikbaar is'); return; }
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: { 'X-Master-Key': JSONBIN_API_KEY } });
+    if (!res.ok) { showToast('JSONBin niet bereikbaar'); return; }
+    const json = await res.json();
+    const raps = json.record?.raps || [];
+    if (!raps.length) { showToast('Geen raps gevonden in cloud-backup'); return; }
+    const datum = json.record?.date ? fmtDate(json.record.date) : '?';
+    if (!confirm(`Cloud-backup van ${datum} terugzetten? (${raps.length} raps)\nBestaande raps blijven staan.`)) return;
+    let ok = 0, fail = 0;
+    for (const rap of raps) {
+      if (!rap?.studentName) continue;
+      const id = rap.id || rap.saveKey || makeKey(rap.school||'', rap.klas||'', rap.studentName);
+      try {
+        const r = await fetch(`${API}?action=save&app=${APP}`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...rap, id}) });
+        const d = await r.json(); d.ok ? ok++ : fail++;
+      } catch(e) { fail++; }
+    }
+    showToast(`${ok} rap${ok===1?'':'pen'} hersteld${fail?' ('+fail+' mislukt)':''}`);
+    loadGallery();
+  } catch(e) { showToast('Herstel mislukt: ' + e.message); }
+}
+
+function autoDownloadBackup(raps) {
+  try {
+    const datum = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([JSON.stringify({ date: new Date().toISOString(), raps }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `raplab_backup_${datum}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch(e) {}
+}
+
+function autoBackupToLocalStorage(list) {
+  try {
+    const backup = { date: new Date().toISOString(), raps: list };
+    localStorage.setItem(BACKUP_LS_KEY, JSON.stringify(backup));
+  } catch(e) {}
+}
+
+// Download alle raps als JSON bestand
+function exportAllRaps() {
+  const raps = S.teacherAllRaps.map(r => r._data);
+  if (!raps.length) { showToast('Geen raps om te exporteren'); return; }
+  const datum = new Date().toISOString().slice(0, 10);
+  const blob = new Blob([JSON.stringify({ date: new Date().toISOString(), raps }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `raplab_backup_${datum}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+  showToast('Backup gedownload');
+}
+
+// Importeer backup van bestand en stuur naar server
+async function importBackup(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      const raps = Array.isArray(parsed) ? parsed : (parsed.raps || []);
+      if (!raps.length) { showToast('Geen raps gevonden in bestand'); return; }
+      let ok = 0, fail = 0;
+      for (const rap of raps) {
+        if (!rap || !rap.studentName) continue;
+        const id = rap.id || rap.saveKey || makeKey(rap.school||'', rap.klas||'', rap.studentName);
+        try {
+          const res = await fetch(`${API}?action=save&app=${APP}`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ ...rap, id }),
+          });
+          const data = await res.json();
+          data.ok ? ok++ : fail++;
+        } catch(e) { fail++; }
+      }
+      showToast(`${ok} rap${ok===1?'':'pen'} teruggezet${fail?' ('+fail+' mislukt)':''}`);
+      loadGallery();
+    } catch(e) { showToast('Ongeldig bestand'); }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+
 let toastTimer;
 function showToast(msg) {
   const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show');
@@ -2220,6 +3807,11 @@ function showToast(msg) {
 }
 
 // ══ INIT ══
+document.addEventListener('click', e => {
+  const menu = document.getElementById('gallery-options-menu');
+  if (menu && !menu.parentElement.contains(e.target)) menu.style.display = 'none';
+});
+loadSettings();
 renderHeader(); drawSpin1(); renderLines();
 
 // ══ STAP 4 — DRUM MACHINE ══
@@ -2331,6 +3923,7 @@ function drumTick() {
 }
 function drumSetBpm(val) { drumBpm = Math.max(60, Math.min(200, parseInt(val) || 90)); }
 function drumClear() { DRUM_TRACKS.forEach(tr => { drumPattern[tr.id] = Array(DRUM_STEPS).fill(false); }); renderStep4(); }
-</script>
+  </script>
 </body>
+
 </html>
